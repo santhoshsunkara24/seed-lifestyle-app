@@ -66,38 +66,41 @@ const Layout = () => {
     return (
         <div className="flex h-screen overflow-hidden bg-[#F8FAFC]">
             {/* Sidebar for Desktop */}
-            <aside className="hidden md:flex flex-col w-72 bg-white border-r border-gray-100 shadow-[2px_0_24px_-12px_rgba(0,0,0,0.05)] z-20">
-                <div className="flex items-center h-24 px-8 border-b border-gray-50">
+            <aside className="hidden md:flex flex-col w-72 bg-white border-r border-gray-200 z-20">
+                <div className="flex items-center h-24 px-8 border-b border-gray-100">
                     <BrandLogo />
                 </div>
                 <nav className="flex-1 overflow-y-auto py-8 px-6">
                     <div className="space-y-2">
-                        <p className="px-4 text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Overview</p>
+
                         {navItems.map((item) => {
                             const isActive = location.pathname === item.path;
                             return (
                                 <Link
                                     key={item.path}
                                     to={item.path}
-                                    className={`flex items-center px-4 py-3.5 rounded-xl text-sm font-semibold transition-all duration-200 group ${isActive
-                                        ? 'bg-emerald-50 text-emerald-700 shadow-sm ring-1 ring-emerald-100'
-                                        : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                                    className={`flex items-center px-4 py-3 rounded-lg text-sm transition-all duration-200 group ${isActive
+                                        ? 'bg-emerald-50 text-emerald-900 font-bold'
+                                        : 'text-gray-400 font-medium hover:text-gray-600 hover:bg-gray-50/50'
                                         }`}
                                 >
-                                    <item.icon className={`mr-3.5 h-5 w-5 transition-transform duration-200 ${isActive ? 'text-emerald-600 scale-110' : 'text-gray-400 group-hover:text-gray-600 group-hover:scale-105'
-                                        }`} />
-                                    {item.name}
+                                    <item.icon
+                                        size={20}
+                                        strokeWidth={isActive ? 0 : 2}
+                                        fill={isActive ? "currentColor" : "none"}
+                                        className={`mr-3 transition-colors duration-200 ${isActive ? 'text-emerald-600' : 'text-gray-300 group-hover:text-gray-500'}`}
+                                    />
+                                    <span className={isActive ? 'opacity-100' : 'opacity-80'}>{item.name}</span>
                                 </Link>
                             );
                         })}
                     </div>
                 </nav>
 
-                {/* User Profile / Admin Badge Section (Mock) */}
                 {/* User Profile / Admin Badge Section */}
-                <div className="p-6 border-t border-gray-50 bg-gray-50/50">
-                    <div className="flex items-center gap-3 px-3 py-3 mb-3">
-                        <div className="bg-emerald-600 h-10 w-10 rounded-full flex items-center justify-center text-white font-bold shadow-md shadow-emerald-200">
+                <div className="p-6 border-t border-gray-100 bg-white">
+                    <div className="flex items-center gap-3 px-3 py-3 mb-3 border border-gray-100 rounded-lg">
+                        <div className="bg-emerald-600 h-10 w-10 rounded-full flex items-center justify-center text-white font-bold">
                             {currentUser?.email?.charAt(0).toUpperCase() || 'A'}
                         </div>
                         <div className="overflow-hidden">
@@ -107,7 +110,7 @@ const Layout = () => {
                     </div>
                     <button
                         onClick={handleLogout}
-                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-rose-600 rounded-xl hover:bg-rose-50 hover:border-rose-100 transition-all text-sm font-bold shadow-sm"
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-rose-600 rounded-lg hover:bg-rose-50 hover:border-rose-100 transition-all text-sm font-bold"
                     >
                         <LogOut size={16} strokeWidth={2.5} />
                         Sign Out
@@ -117,7 +120,7 @@ const Layout = () => {
 
             {/* Mobile Header & Sidebar */}
             <div className="flex flex-col flex-1 w-0 overflow-hidden">
-                <div className="md:hidden flex items-center justify-between h-16 bg-white border-b border-gray-100 px-4 shadow-sm z-10">
+                <div className="md:hidden flex items-center justify-between h-16 bg-white border-b border-gray-200 px-4 z-10">
                     <BrandLogo />
                     <button onClick={toggleSidebar} className="p-2 rounded-lg text-gray-500 hover:bg-gray-100">
                         {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}

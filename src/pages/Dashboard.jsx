@@ -2,18 +2,11 @@ import React, { useState, useMemo } from 'react';
 import { Wallet, Warehouse, PiggyBank, CheckCircle2, Plus, CheckSquare, Trash2, X, MoveUpRight, Pencil, Save, Eye, Search, Filter, Calendar } from 'lucide-react';
 import { useData } from '../context/DataContext';
 
-const formatDate = (dateString) => {
-    if (!dateString) return '-';
-    const date = new Date(dateString);
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    return `${day}-${month}-${year}`;
-};
+import { formatDate } from '../utils/formatDate';
 
 const Dashboard = () => {
 
-    const { stats, stock, sales, expenses, addPayment, deleteSale, deleteStock, deleteExpense, updateSale, updateStock, updateExpense } = useData();
+    const { stats, stock, sales, expenses, loading, addPayment, deleteSale, deleteStock, deleteExpense, updateSale, updateStock, updateExpense } = useData();
     const [activeTab, setActiveTab] = useState('sales');
     const [searchQuery, setSearchQuery] = useState('');
     const [dateRange, setDateRange] = useState({ start: '', end: '' });
@@ -149,90 +142,88 @@ const Dashboard = () => {
         closeModal();
     };
 
-    const statCards = [
-        {
-            title: 'Money Received',
-            // Update: Show Received / Total Bill
-            value: (
-                <div className="flex items-baseline gap-1">
-                    <span className="text-2xl md:text-3xl font-bold text-gray-900">₹{stats.totalCollection.toLocaleString()}</span>
-                    <span className="text-sm font-medium text-gray-400">/ ₹{stats.totalSalesValue.toLocaleString()}</span>
-                </div>
-            ),
-            icon: Wallet,
-            color: 'text-emerald-600',
-            bg: 'bg-emerald-50',
-            // Calculate percentage for change
-            change: stats.totalSalesValue > 0 ? `${Math.round((stats.totalCollection / stats.totalSalesValue) * 100)}% Coll.` : '0%',
-            changeType: 'positive'
-        },
-        {
-            title: 'Stock Purchased',
-            value: <span className="text-3xl font-bold text-gray-900">₹{stats.stockPurchasedValue.toLocaleString()}</span>,
-            icon: Warehouse,
-            color: 'text-blue-600',
-            bg: 'bg-blue-50',
-            change: `${stock.length} Batches`,
-            changeType: 'neutral'
-        },
-        {
-            title: 'Home Expenses',
-            value: <span className="text-3xl font-bold text-gray-900">₹{stats.homeExpenses.toLocaleString()}</span>,
-            icon: PiggyBank,
-            color: 'text-rose-600',
-            bg: 'bg-rose-50',
-            change: `${expenses.length} Txns`,
-            changeType: 'negative'
-        },
-    ];
+
 
     return (
         <div className="space-y-8 relative max-w-[1600px] mx-auto">
-            <header className="flex justify-between items-end mb-8 border-b border-gray-200/50 pb-6">
+            <header className="flex justify-between items-end mb-8 border-b border-gray-200 pb-6">
                 <div>
                     <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight lg:text-4xl leading-tight">Dashboard.</h2>
-                    <p className="text-sm text-gray-400 font-medium tracking-wide mt-1">Overview & Statistics</p>
+                    <p className="text-sm text-gray-500 font-medium tracking-wide mt-1">Overview & Statistics</p>
                 </div>
-                <div className="text-xs font-semibold text-gray-500 bg-white/50 backdrop-blur-md px-4 py-2 border border-white/40 shadow-sm uppercase tracking-widest rounded-full">
+                <div className="text-xs font-semibold text-gray-500 bg-white px-4 py-2 border border-gray-200 uppercase tracking-widest rounded-full">
                     {formatDate(new Date().toISOString())}
                 </div>
             </header>
 
-            {/* Stats Grid */}
+            {/* Stats Grid - Soft & Minimal */}
+            {/* Stats Grid - Soft & Minimal (Tinted) */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {statCards.map((stat, index) => (
-                    <div key={index} className="bg-white/70 backdrop-blur-lg p-8 rounded-3xl shadow-sm border border-white/50 flex flex-col justify-between h-48 hover:shadow-md transition-all duration-300">
-                        <div className="flex justify-between items-start">
-                            <div className="space-y-2">
-                                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{stat.title}</p>
-                                {stat.value}
-                            </div>
-                            <div className={`p-4 rounded-2xl ${stat.bg} mix-blend-multiply opacity-80`}>
-                                <stat.icon className={`h-6 w-6 ${stat.color}`} strokeWidth={1.5} />
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-2 mt-auto">
-                            <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider ${stat.changeType === 'positive' ? 'bg-emerald-50 text-emerald-600' : stat.changeType === 'negative' ? 'bg-rose-50 text-rose-600' : 'bg-blue-50 text-blue-600'}`}>
-                                {stat.change}
-                            </span>
-                        </div>
+                <div className="bg-emerald-50 p-8 rounded-3xl relative overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 group border border-emerald-100/50">
+                    <div className="absolute top-0 right-0 p-8 text-emerald-100 opacity-50 group-hover:scale-110 transition-transform duration-500">
+                        <Wallet size={120} strokeWidth={0} fill="currentColor" />
                     </div>
-                ))}
+                    <div className="relative z-10">
+                        <div className="flex items-center gap-3 mb-3">
+                            <div className="p-2 bg-emerald-100 rounded-full">
+                                <Wallet size={20} strokeWidth={0} fill="currentColor" className="text-emerald-600" />
+                            </div>
+                            <h3 className="text-emerald-900 font-bold tracking-wide text-xs uppercase">Money Received</h3>
+                        </div>
+                        <p className="text-4xl font-bold text-gray-900 tracking-tight mb-1">₹{loading ? "..." : (stats.totalCollection || 0).toLocaleString()}</p>
+                        <p className="text-emerald-700 text-sm font-medium">Total: ₹{loading ? "..." : (stats.totalSalesValue || 0).toLocaleString()}</p>
+                    </div>
+                </div>
+
+                <div className="bg-blue-50 p-8 rounded-3xl relative overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 group border border-blue-100/50">
+                    <div className="absolute top-0 right-0 p-8 text-blue-100 opacity-50 group-hover:scale-110 transition-transform duration-500">
+                        <Warehouse size={120} strokeWidth={0} fill="currentColor" />
+                    </div>
+                    <div className="relative z-10">
+                        <div className="flex items-center gap-3 mb-3">
+                            <div className="p-2 bg-blue-100 rounded-full">
+                                <Warehouse size={20} strokeWidth={0} fill="currentColor" className="text-blue-600" />
+                            </div>
+                            <h3 className="text-blue-900 font-bold tracking-wide text-xs uppercase">Stock Value</h3>
+                        </div>
+                        <p className="text-4xl font-bold text-gray-900 tracking-tight mb-1">₹{loading ? "..." : (stats.stockPurchasedValue || 0).toLocaleString()}</p>
+                        <p className="text-blue-700 text-sm font-medium">{stock.length} Batches in Warehouse</p>
+                    </div>
+                </div>
+
+                <div className="bg-rose-50 p-8 rounded-3xl relative overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 group border border-rose-100/50">
+                    <div className="absolute top-0 right-0 p-8 text-rose-100 opacity-50 group-hover:scale-110 transition-transform duration-500">
+                        <PiggyBank size={120} strokeWidth={0} fill="currentColor" />
+                    </div>
+                    <div className="relative z-10">
+                        <div className="flex items-center gap-3 mb-3">
+                            <div className="p-2 bg-rose-100 rounded-full">
+                                <PiggyBank size={20} strokeWidth={0} fill="currentColor" className="text-rose-600" />
+                            </div>
+                            <h3 className="text-rose-900 font-bold tracking-wide text-xs uppercase">Expenses</h3>
+                        </div>
+                        <p className="text-4xl font-bold text-gray-900 tracking-tight mb-1">₹{loading ? "..." : (stats.homeExpenses || 0).toLocaleString()}</p>
+                        <p className="text-rose-700 text-sm font-medium">{expenses.length} Transactions</p>
+                    </div>
+                </div>
             </div>
 
             {/* Content Area with Tabs */}
-            <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-sm border border-white/60 overflow-hidden min-h-[600px]">
-                <div className="border-b border-gray-100 px-8 flex flex-col items-start bg-white/50 sticky top-0 z-10 pt-8 pb-0 backdrop-blur-md">
+            <div className="bg-white rounded-3xl border border-gray-100 overflow-hidden min-h-[600px] shadow-xl shadow-gray-100/50">
+                <div className="border-b border-gray-200 px-8 flex flex-col items-start bg-white sticky top-0 z-10 pt-8 pb-0">
                     <div className="flex space-x-12 w-full overflow-x-auto no-scrollbar mb-6">
                         {['sales', 'stock', 'expenses'].map((tab) => (
                             <button
                                 key={tab}
                                 onClick={() => handleTabChange(tab)}
-                                className={`pb-4 text-sm font-bold border-b-2 transition-all capitalize tracking-wider ${activeTab === tab
-                                    ? 'border-emerald-500 text-gray-900'
+                                className={`pb-4 text-sm font-bold border-b-2 transition-all capitalize tracking-wider flex items-center gap-2 ${activeTab === tab
+                                    ? 'border-emerald-600 text-gray-900'
                                     : 'border-transparent text-gray-400 hover:text-gray-600'
                                     }`}
                             >
+                                {tab === 'sales' && <Wallet size={18} strokeWidth={activeTab === 'sales' ? 0 : 2} fill={activeTab === 'sales' ? "currentColor" : "none"} className={activeTab === 'sales' ? "text-emerald-500" : ""} />}
+                                {tab === 'stock' && <Warehouse size={18} strokeWidth={activeTab === 'stock' ? 0 : 2} fill={activeTab === 'stock' ? "currentColor" : "none"} className={activeTab === 'stock' ? "text-blue-500" : ""} />}
+                                {tab === 'expenses' && <PiggyBank size={18} strokeWidth={activeTab === 'expenses' ? 0 : 2} fill={activeTab === 'expenses' ? "currentColor" : "none"} className={activeTab === 'expenses' ? "text-rose-500" : ""} />}
                                 {tab === 'sales' ? 'Sales Tracker' : tab === 'stock' ? 'Inventory Status' : 'Expense Log'}
                             </button>
                         ))}
@@ -247,9 +238,9 @@ const Dashboard = () => {
                                 placeholder={`Search ${activeTab}...`}
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-11 pr-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500/50 focus:bg-white transition-all text-gray-700 placeholder:text-gray-400 font-medium group-hover:bg-white"
+                                className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500 focus:bg-white transition-all text-gray-700 placeholder:text-gray-400 font-medium"
                             />
-                            <Search className="absolute left-4 top-3.5 h-4 w-4 text-gray-400 group-hover:text-emerald-500 transition-colors" strokeWidth={2} />
+                            <Search className="absolute left-4 top-3.5 h-4 w-4 text-gray-400" strokeWidth={2} />
                         </div>
 
                         {/* Entity Filter */}
@@ -257,36 +248,46 @@ const Dashboard = () => {
                             <select
                                 value={selectedEntity}
                                 onChange={(e) => setSelectedEntity(e.target.value)}
-                                className="w-full pl-11 pr-10 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500/50 focus:bg-white transition-all appearance-none cursor-pointer text-gray-600 font-medium group-hover:bg-white"
+                                className="w-full pl-11 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500 focus:bg-white transition-all appearance-none cursor-pointer text-gray-600 font-medium"
                             >
                                 <option value="">All {activeTab === 'sales' ? 'Customers' : activeTab === 'stock' ? 'Suppliers' : 'Categories'}</option>
                                 {uniqueEntities.map(entity => (
                                     <option key={entity} value={entity}>{entity}</option>
                                 ))}
                             </select>
-                            <Filter className="absolute left-4 top-3.5 h-4 w-4 text-gray-400 group-hover:text-emerald-500 transition-colors" strokeWidth={2} />
+                            <Filter className="absolute left-4 top-3.5 h-4 w-4 text-gray-400" strokeWidth={2} />
                         </div>
 
-                        {/* Date Range */}
+                        {/* Date Range with Custom DD-MM-YYYY Mask */}
                         <div className="flex gap-3 items-center w-full md:w-auto">
                             <div className="relative w-full md:w-40 group">
+                                {/* Visual Mask */}
+                                <div className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-500 uppercase tracking-wide flex items-center h-[42px]">
+                                    {dateRange.start ? formatDate(dateRange.start) : <span className="text-gray-300">Start Date</span>}
+                                </div>
+                                <Calendar className="absolute left-3.5 top-3.5 h-4 w-4 text-gray-300" strokeWidth={2} />
+                                {/* Hidden Trigger */}
                                 <input
                                     type="date"
                                     value={dateRange.start}
                                     onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
-                                    className="w-full pl-10 pr-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl text-xs font-bold focus:outline-none focus:ring-1 focus:ring-emerald-500/50 focus:bg-white transition-all text-gray-500 uppercase tracking-wide group-hover:bg-white"
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                                 />
-                                <Calendar className="absolute left-3.5 top-3.5 h-4 w-4 text-gray-300 group-hover:text-emerald-500 transition-colors" strokeWidth={2} />
                             </div>
-                            <span className="text-gray-200 font-light">/</span>
+                            <span className="text-gray-300 font-light">/</span>
                             <div className="relative w-full md:w-40 group">
+                                {/* Visual Mask */}
+                                <div className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-500 uppercase tracking-wide flex items-center h-[42px]">
+                                    {dateRange.end ? formatDate(dateRange.end) : <span className="text-gray-300">End Date</span>}
+                                </div>
+                                <Calendar className="absolute left-3.5 top-3.5 h-4 w-4 text-gray-300" strokeWidth={2} />
+                                {/* Hidden Trigger */}
                                 <input
                                     type="date"
                                     value={dateRange.end}
                                     onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
-                                    className="w-full pl-10 pr-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl text-xs font-bold focus:outline-none focus:ring-1 focus:ring-emerald-500/50 focus:bg-white transition-all text-gray-500 uppercase tracking-wide group-hover:bg-white"
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                                 />
-                                <Calendar className="absolute left-3.5 top-3.5 h-4 w-4 text-gray-300 group-hover:text-emerald-500 transition-colors" strokeWidth={2} />
                             </div>
                         </div>
 
@@ -294,7 +295,7 @@ const Dashboard = () => {
                         {(searchQuery || selectedEntity || dateRange.start || dateRange.end) && (
                             <button
                                 onClick={() => { setSearchQuery(''); setSelectedEntity(''); setDateRange({ start: '', end: '' }) }}
-                                className="p-3 text-rose-500 hover:bg-rose-50 rounded-2xl transition-all border border-transparent hover:border-rose-100"
+                                className="p-3 text-rose-500 hover:bg-rose-50 rounded-lg transition-all border border-transparent hover:border-rose-100"
                                 title="Clear Filters"
                             >
                                 <X size={20} strokeWidth={2} />
@@ -391,6 +392,8 @@ const Dashboard = () => {
                                     <tr>
                                         <th className="px-8 py-6 font-semibold">Supplier</th>
                                         <th className="px-8 py-6 font-semibold">Seed (Lot)</th>
+                                        <th className="px-8 py-6 font-semibold">Price/Pkt</th>
+                                        <th className="px-8 py-6 font-semibold">Total Value</th>
                                         <th className="px-8 py-6 font-semibold">Arrival</th>
                                         <th className="px-8 py-6 font-semibold">Stock Level</th>
                                         <th className="px-8 py-6 font-semibold">Status</th>
@@ -410,6 +413,8 @@ const Dashboard = () => {
                                                         <span className="text-[10px] text-gray-400 font-mono tracking-wider">#{batch.lot_no}</span>
                                                     </div>
                                                 </td>
+                                                <td className="px-8 py-6 text-gray-900 font-bold">₹{batch.cost_per_packet}</td>
+                                                <td className="px-8 py-6 text-gray-600 font-medium">₹{(batch.cost_per_packet * batch.total_packets_initial).toLocaleString()}</td>
                                                 <td className="px-8 py-6 text-gray-400 text-xs tracking-wider font-mono">{formatDate(batch.arrival_date)}</td>
                                                 <td className="px-8 py-6 font-mono text-gray-700 font-bold bg-gray-50/50 rounded-lg">{batch.packets_available} <span className="text-xs font-normal text-gray-400">pkts</span></td>
                                                 <td className="px-8 py-6">
@@ -477,8 +482,8 @@ const Dashboard = () => {
 
             {/* Reusable Modal for View and Edit */}
             {modalConfig.isOpen && (
-                <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={closeModal}>
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200" onClick={(e) => e.stopPropagation()}>
+                <div className="fixed inset-0 bg-gray-900/20 flex items-center justify-center z-50 p-4" onClick={closeModal}>
+                    <div className="bg-white rounded-xl border border-gray-200 shadow-lg w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200" onClick={(e) => e.stopPropagation()}>
                         <div className="px-8 py-6 border-b border-gray-100 flex justify-between items-center bg-white">
                             <div>
                                 <h3 className="text-xl font-bold text-gray-900 capitalize tracking-tight">

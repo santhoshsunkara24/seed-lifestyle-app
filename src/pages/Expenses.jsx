@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ReceiptText, Loader } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import SuccessScreen from '../components/SuccessScreen';
+import { formatDate } from '../utils/formatDate';
 
 const Expenses = () => {
     const { addExpense } = useData();
@@ -41,10 +42,10 @@ const Expenses = () => {
 
     if (showSuccess) {
         return (
-            <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="max-w-2xl mx-auto bg-white rounded-3xl border border-gray-100 overflow-hidden">
                 <SuccessScreen
                     title="Expense Logged"
-                    message={`Logged ₹${formData.amount} for ${formData.category}.`}
+                    message={`Logged ₹${formData.amount} for ${formData.category} on ${formatDate(new Date().toISOString())}.`}
                     onReset={handleReset}
                 />
             </div>
@@ -52,10 +53,10 @@ const Expenses = () => {
     }
 
     return (
-        <div className="max-w-2xl mx-auto bg-white p-8 rounded-2xl shadow-[0_2px_20px_-5px_rgba(0,0,0,0.1)] border border-gray-100">
-            <div className="flex items-center gap-3 mb-8">
+        <div className="max-w-2xl mx-auto">
+            <div className="flex items-center gap-3 mb-8 px-2">
                 <div className="bg-emerald-100 p-2.5 rounded-xl">
-                    <ReceiptText className="h-6 w-6 text-emerald-600" />
+                    <ReceiptText className="h-6 w-6 text-emerald-600" fill="currentColor" strokeWidth={1.5} />
                 </div>
                 <div>
                     <h2 className="text-xl font-bold text-gray-900 tracking-tight">Log New Expense</h2>
@@ -65,11 +66,11 @@ const Expenses = () => {
 
             <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Category</label>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">Category</label>
                     <select
                         name="category"
                         required
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all appearance-none font-medium"
+                        className="w-full px-5 py-4 bg-white border border-gray-100 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all appearance-none font-medium shadow-sm hover:shadow-md cursor-pointer text-gray-700"
                         value={formData.category}
                         onChange={handleChange}
                     >
@@ -81,25 +82,25 @@ const Expenses = () => {
                 </div>
 
                 <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Amount (₹)</label>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">Amount (₹)</label>
                     <input
                         type="number"
                         name="amount"
                         required
                         min="0"
                         step="0.01"
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all font-medium"
+                        className="w-full px-5 py-4 bg-white border border-gray-100 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all font-medium shadow-sm hover:shadow-md"
                         value={formData.amount}
                         onChange={handleChange}
                     />
                 </div>
 
                 <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Description (Optional)</label>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">Description (Optional)</label>
                     <textarea
                         name="description"
                         rows="3"
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all font-medium"
+                        className="w-full px-5 py-4 bg-white border border-gray-100 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all font-medium shadow-sm hover:shadow-md resize-none"
                         value={formData.description}
                         onChange={handleChange}
                         placeholder="Additional details..."
@@ -110,12 +111,12 @@ const Expenses = () => {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full flex items-center justify-center px-6 py-4 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-100 transition-all disabled:opacity-70 shadow-lg shadow-emerald-200"
+                        className="w-full flex items-center justify-center px-6 py-4 bg-emerald-600 text-white font-bold rounded-2xl hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-100 transition-all disabled:opacity-70 shadow-lg shadow-emerald-200"
                     >
                         {loading ? <Loader className="animate-spin mr-2 h-5 w-5" /> : <ReceiptText className="mr-2 h-5 w-5" />}
                         Log Expense
                     </button>
-                    <p className="text-center text-xs text-gray-400 mt-4 font-medium">This will be reflected in your daily totals.</p>
+                    <p className="text-center text-xs text-gray-400 mt-4 font-medium opacity-60">This will be reflected in your daily totals.</p>
                 </div>
             </form>
         </div>

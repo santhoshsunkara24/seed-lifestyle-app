@@ -11,30 +11,30 @@ const SuccessScreen = ({ title, message, onReset }) => {
     }, []);
 
     return (
-        <div className="flex flex-col items-center justify-center p-8 md:p-12 text-center animate-in fade-in duration-500">
-            <div className={`w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center mb-6 transition-all duration-700 ${animate ? 'scale-100 rotate-0' : 'scale-50 rotate-[-45deg]'}`}>
-                <div className="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg shadow-emerald-200">
-                    <Check className={`w-10 h-10 text-white ${animate ? 'opacity-100' : 'opacity-0'} transition-opacity duration-700 delay-300`} strokeWidth={4} />
-                </div>
+        <div className="flex flex-col items-center justify-center p-8 text-center animate-in fade-in zoom-in duration-300">
+            {/* Icon */}
+            <div className="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center mb-6 shadow-sm">
+                <Check className="w-8 h-8 text-white" strokeWidth={3} />
             </div>
 
-            <h2 className="text-3xl font-bold text-gray-900 mb-2 tracking-tight">{title}</h2>
-            <p className="text-gray-500 font-medium mb-10 max-w-sm mx-auto">{message}</p>
+            {/* Title & Message */}
+            <h2 className="text-2xl font-bold text-slate-900 mb-2">{title}</h2>
+            <p className="text-slate-500 text-sm mb-8 max-w-xs mx-auto leading-relaxed">{message}</p>
 
-            <div className="flex flex-col sm:flex-row gap-4 w-full max-w-xs">
+            {/* Buttons */}
+            <div className="flex flex-col gap-3 w-full max-w-xs">
                 <button
                     onClick={onReset}
-                    className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-900 text-white rounded-xl font-bold hover:bg-gray-800 transition-colors shadow-lg shadow-gray-200"
+                    className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-slate-900 text-white rounded-full font-bold hover:bg-slate-800 transition-colors shadow-md"
                 >
-                    <Plus size={20} strokeWidth={2.5} />
+                    <Plus size={18} strokeWidth={2.5} />
                     Add Another
                 </button>
                 <button
                     onClick={() => navigate('/')}
-                    className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 bg-white border border-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition-colors"
+                    className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-white text-slate-600 rounded-full font-semibold hover:bg-slate-50 transition-colors border border-gray-100"
                 >
-                    <LayoutDashboard size={20} strokeWidth={2.5} />
-                    Dashboard
+                    Go to Dashboard
                 </button>
             </div>
         </div>
