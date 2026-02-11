@@ -80,7 +80,7 @@ const StockEntry = () => {
                             type="text"
                             name="supplier_name"
                             required
-                            className="w-full px-5 py-4 bg-white border border-gray-100 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all font-medium shadow-sm hover:shadow-md"
+                            className="w-full px-5 py-3 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all font-semibold text-gray-900 shadow-sm hover:shadow-md text-sm"
                             value={formData.supplier_name}
                             onChange={handleChange}
                             placeholder="e.g. Denova"
@@ -92,7 +92,7 @@ const StockEntry = () => {
                             type="text"
                             name="seed_name"
                             required
-                            className="w-full px-5 py-4 bg-white border border-gray-100 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all font-medium shadow-sm hover:shadow-md"
+                            className="w-full px-5 py-3 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all font-semibold text-gray-900 shadow-sm hover:shadow-md text-sm"
                             value={formData.seed_name}
                             onChange={handleChange}
                             placeholder="e.g. Tomato Hybrid"
@@ -106,7 +106,7 @@ const StockEntry = () => {
                         type="text"
                         name="lot_no"
                         required
-                        className="w-full px-5 py-4 bg-white border border-gray-100 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all font-medium shadow-sm hover:shadow-md"
+                        className="w-full px-5 py-3 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all font-semibold text-gray-900 shadow-sm hover:shadow-md text-sm"
                         value={formData.lot_no}
                         onChange={handleChange}
                         placeholder="Batch ID"
@@ -122,7 +122,7 @@ const StockEntry = () => {
                             name="total_packets_initial"
                             required
                             min="1"
-                            className="w-full px-5 py-4 bg-white border border-gray-100 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all font-medium shadow-sm hover:shadow-md"
+                            className="w-full px-5 py-3 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all font-semibold text-gray-900 shadow-sm hover:shadow-md text-sm"
                             value={formData.total_packets_initial}
                             onChange={handleChange}
                         />
@@ -135,7 +135,7 @@ const StockEntry = () => {
                             required
                             min="0"
                             step="0.01"
-                            className="w-full px-5 py-4 bg-white border border-gray-100 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all font-medium shadow-sm hover:shadow-md"
+                            className="w-full px-5 py-3 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all font-semibold text-gray-900 shadow-sm hover:shadow-md text-sm"
                             value={formData.cost_per_packet}
                             onChange={handleChange}
                         />
@@ -146,7 +146,7 @@ const StockEntry = () => {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full flex items-center justify-center px-6 py-4 bg-emerald-600 text-white font-bold rounded-2xl hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-100 transition-all disabled:opacity-70 shadow-lg shadow-emerald-200"
+                        className="w-full flex items-center justify-center px-6 py-3 bg-emerald-600 text-white font-bold rounded-2xl hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-100 transition-all disabled:opacity-70 shadow-lg shadow-emerald-200"
                     >
                         {loading ? <Loader className="animate-spin mr-2 h-5 w-5" /> : <Save className="mr-2 h-5 w-5" />}
                         Save Stock Entry

@@ -97,7 +97,7 @@ const Sales = () => {
                             type="text"
                             name="customer_name"
                             required
-                            className="w-full px-5 py-4 bg-white border border-gray-100 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all font-medium shadow-sm hover:shadow-md"
+                            className="w-full px-5 py-3 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all font-semibold text-gray-900 shadow-sm hover:shadow-md text-sm"
                             value={formData.customer_name}
                             onChange={handleChange}
                             placeholder="Enter Farmer Name"
@@ -110,7 +110,7 @@ const Sales = () => {
                             <select
                                 name="stock_batch_id"
                                 required
-                                className="w-full pl-5 pr-10 py-4 bg-white border border-gray-100 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all appearance-none font-medium shadow-sm hover:shadow-md cursor-pointer text-gray-700"
+                                className="w-full pl-5 pr-10 py-3 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all appearance-none font-semibold shadow-sm hover:shadow-md cursor-pointer text-gray-900 text-sm"
                                 value={formData.stock_batch_id}
                                 onChange={handleChange}
                             >
@@ -135,7 +135,7 @@ const Sales = () => {
                             required
                             min="1"
                             max={selectedStock ? selectedStock.packets_available : undefined}
-                            className="w-full px-5 py-4 bg-white border border-gray-100 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all font-medium shadow-sm hover:shadow-md"
+                            className="w-full px-5 py-3 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all font-semibold text-gray-900 shadow-sm hover:shadow-md text-sm"
                             value={formData.packets_sold}
                             onChange={handleChange}
                             placeholder="Packets"
@@ -150,7 +150,7 @@ const Sales = () => {
                             required
                             min="0"
                             step="0.01"
-                            className="w-full px-5 py-4 bg-white border border-gray-100 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all font-medium shadow-sm hover:shadow-md"
+                            className="w-full px-5 py-3 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all font-semibold text-gray-900 shadow-sm hover:shadow-md text-sm"
                             value={formData.price_per_packet}
                             onChange={handleChange}
                             placeholder="0.00"
@@ -158,13 +158,13 @@ const Sales = () => {
                     </div>
                 </div>
 
-                <div className="p-6 bg-white rounded-3xl border border-gray-100 shadow-lg shadow-gray-100/50">
+                <div className="p-6 bg-white rounded-3xl border border-gray-200 shadow-lg shadow-gray-100/50">
                     <div className="flex justify-between items-end mb-6">
-                        <span className="text-sm font-semibold text-gray-500">Total Sale Amount</span>
-                        <span className="text-3xl font-bold text-gray-900 tracking-tight">₹{calculatedTotal.toLocaleString()}</span>
+                        <span className="text-sm font-bold text-gray-600">Total Sale Amount</span>
+                        <span className="text-2xl font-bold text-gray-900 tracking-tight">₹{calculatedTotal.toLocaleString()}</span>
                     </div>
                     <div>
-                        <label className="block text-xs font-bold text-emerald-600 uppercase tracking-wider mb-2 ml-1">Initial Payment (₹)</label>
+                        <label className="block text-xs font-bold text-emerald-700 uppercase tracking-wider mb-2 ml-1">Initial Payment (₹)</label>
                         <input
                             type="number"
                             name="amount_paid_now"
@@ -173,7 +173,7 @@ const Sales = () => {
                             max={calculatedTotal}
                             step="0.01"
                             placeholder="Amount Received Now"
-                            className="w-full px-5 py-4 bg-gray-50 border border-emerald-100 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all text-gray-900 placeholder:text-gray-300 font-bold"
+                            className="w-full px-5 py-3 bg-gray-50 border border-emerald-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all text-gray-900 placeholder:text-gray-400 font-bold text-sm"
                             value={formData.amount_paid_now}
                             onChange={handleChange}
                         />
@@ -184,7 +184,7 @@ const Sales = () => {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full flex items-center justify-center px-6 py-4 bg-emerald-600 text-white font-bold rounded-2xl hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-100 transition-all disabled:opacity-70 shadow-lg shadow-emerald-200"
+                        className="w-full flex items-center justify-center px-6 py-3 bg-emerald-600 text-white font-bold rounded-2xl hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-100 transition-all disabled:opacity-70 shadow-lg shadow-emerald-200 text-sm"
                     >
                         {loading ? <Loader className="animate-spin mr-2 h-5 w-5" /> : <ShoppingBag className="mr-2 h-5 w-5" />}
                         Record Transaction

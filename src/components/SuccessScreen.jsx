@@ -18,21 +18,21 @@ const SuccessScreen = ({ title, message, onReset }) => {
             </div>
 
             {/* Title & Message */}
-            <h2 className="text-2xl font-bold text-slate-900 mb-2">{title}</h2>
-            <p className="text-slate-500 text-sm mb-8 max-w-xs mx-auto leading-relaxed">{message}</p>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">{title}</h2>
+            <p className="text-gray-600 text-xs mb-6 max-w-xs mx-auto leading-relaxed font-medium">{message}</p>
 
             {/* Buttons */}
             <div className="flex flex-col gap-3 w-full max-w-xs">
                 <button
                     onClick={onReset}
-                    className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-slate-900 text-white rounded-full font-bold hover:bg-slate-800 transition-colors shadow-md"
+                    className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-full font-bold hover:bg-gray-800 transition-colors shadow-md text-sm"
                 >
-                    <Plus size={18} strokeWidth={2.5} />
+                    <Plus size={16} strokeWidth={2.5} />
                     Add Another
                 </button>
                 <button
                     onClick={() => navigate('/')}
-                    className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-white text-slate-600 rounded-full font-semibold hover:bg-slate-50 transition-colors border border-gray-100"
+                    className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-white text-gray-700 rounded-full font-semibold hover:bg-gray-50 transition-colors border border-gray-200 text-sm"
                 >
                     Go to Dashboard
                 </button>

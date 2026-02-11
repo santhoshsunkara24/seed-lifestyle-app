@@ -40,8 +40,8 @@ const Login = () => {
                     <div className="bg-emerald-50 p-3 rounded-lg mb-4">
                         <Sprout className="h-8 w-8 text-emerald-600" strokeWidth={2.5} />
                     </div>
-                    <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Welcome Back</h2>
-                    <p className="text-sm text-gray-500 font-medium mt-1">Sign in to manage your seed business</p>
+                    <h2 className="text-xl font-extrabold text-gray-900 tracking-tight">Welcome Back</h2>
+                    <p className="text-xs text-gray-500 font-medium mt-1">Sign in to manage your seed business</p>
                 </div>
 
                 {error && (
@@ -57,7 +57,7 @@ const Login = () => {
                             <input
                                 type="email"
                                 required
-                                className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-lg focus:border-emerald-500 focus:outline-none transition-all font-medium text-gray-900"
+                                className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-lg focus:border-emerald-500 focus:outline-none transition-all font-semibold text-gray-900 text-sm"
                                 placeholder="name@example.com"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
@@ -72,7 +72,7 @@ const Login = () => {
                             <input
                                 type="password"
                                 required
-                                className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-lg focus:border-emerald-500 focus:outline-none transition-all font-medium text-gray-900"
+                                className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-lg focus:border-emerald-500 focus:outline-none transition-all font-semibold text-gray-900 text-sm"
                                 placeholder="Enter your password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
@@ -84,7 +84,7 @@ const Login = () => {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full flex items-center justify-center px-6 py-3.5 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700 transition-all disabled:opacity-70 mt-2"
+                        className="w-full flex items-center justify-center px-6 py-3 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700 transition-all disabled:opacity-70 mt-2 text-sm"
                     >
                         {loading ? <Loader className="animate-spin mr-2 h-5 w-5" /> : 'Sign In'}
                     </button>

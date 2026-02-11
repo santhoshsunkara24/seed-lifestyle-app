@@ -27,28 +27,6 @@ const Layout = () => {
         { name: 'Expenses', path: '/expenses', icon: ReceiptText },
     ];
 
-    // ... (rest of the file) ...
-
-    {/* User Profile / Admin Badge Section */ }
-    <div className="p-6 border-t border-gray-50 bg-gray-50/50">
-        <div className="flex items-center gap-3 px-3 py-3 mb-3">
-            <div className="bg-emerald-600 h-10 w-10 rounded-full flex items-center justify-center text-white font-bold shadow-md shadow-emerald-200">
-                {currentUser?.email?.charAt(0).toUpperCase() || 'A'}
-            </div>
-            <div className="overflow-hidden">
-                <p className="text-sm font-bold text-gray-900 truncate max-w-[120px]">{currentUser?.email?.split('@')[0] || 'Admin'}</p>
-                <p className="text-xs text-gray-500 font-medium truncate">Logged In</p>
-            </div>
-        </div>
-        <button
-            onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-rose-600 rounded-xl hover:bg-rose-50 hover:border-rose-100 transition-all text-sm font-bold shadow-sm"
-        >
-            <LogOut size={16} strokeWidth={2.5} />
-            Sign Out
-        </button>
-    </div>
-
     const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
     const BrandLogo = () => (
@@ -67,10 +45,11 @@ const Layout = () => {
         <div className="flex h-screen overflow-hidden bg-[#F8FAFC]">
             {/* Sidebar for Desktop */}
             <aside className="hidden md:flex flex-col w-72 bg-white border-r border-gray-200 z-20">
-                <div className="flex items-center h-24 px-8 border-b border-gray-100">
+                <div className="flex items-center justify-between h-24 px-6 border-b border-gray-100">
                     <BrandLogo />
                 </div>
-                <nav className="flex-1 overflow-y-auto py-8 px-6">
+
+                <nav className="flex-1 overflow-y-auto py-4 px-6">
                     <div className="space-y-2">
 
                         {navItems.map((item) => {
@@ -81,16 +60,16 @@ const Layout = () => {
                                     to={item.path}
                                     className={`flex items-center px-4 py-3 rounded-lg text-sm transition-all duration-200 group ${isActive
                                         ? 'bg-emerald-50 text-emerald-900 font-bold'
-                                        : 'text-gray-400 font-medium hover:text-gray-600 hover:bg-gray-50/50'
+                                        : 'text-gray-600 font-medium hover:text-gray-900 hover:bg-gray-50/50'
                                         }`}
                                 >
                                     <item.icon
                                         size={20}
                                         strokeWidth={isActive ? 0 : 2}
                                         fill={isActive ? "currentColor" : "none"}
-                                        className={`mr-3 transition-colors duration-200 ${isActive ? 'text-emerald-600' : 'text-gray-300 group-hover:text-gray-500'}`}
+                                        className={`mr-3 transition-colors duration-200 ${isActive ? 'text-emerald-600' : 'text-gray-400 group-hover:text-gray-600'}`}
                                     />
-                                    <span className={isActive ? 'opacity-100' : 'opacity-80'}>{item.name}</span>
+                                    <span className={isActive ? 'opacity-100' : 'opacity-100'}>{item.name}</span>
                                 </Link>
                             );
                         })}
@@ -100,7 +79,7 @@ const Layout = () => {
                 {/* User Profile / Admin Badge Section */}
                 <div className="p-6 border-t border-gray-100 bg-white">
                     <div className="flex items-center gap-3 px-3 py-3 mb-3 border border-gray-100 rounded-lg">
-                        <div className="bg-emerald-600 h-10 w-10 rounded-full flex items-center justify-center text-white font-bold">
+                        <div className="bg-emerald-600 h-10 w-10 rounded-full flex items-center justify-center text-white font-bold text-base">
                             {currentUser?.email?.charAt(0).toUpperCase() || 'A'}
                         </div>
                         <div className="overflow-hidden">
@@ -160,7 +139,7 @@ const Layout = () => {
                 )}
 
                 {/* Main Content */}
-                <main className="flex-1 relative overflow-y-auto focus:outline-none p-4 md:p-8 bg-[#F8FAFC]">
+                <main className="flex-1 relative overflow-y-auto focus:outline-none p-4 md:px-8 md:pb-8 md:pt-4 bg-[#F8FAFC]">
                     <div className="max-w-7xl mx-auto">
                         <Outlet />
                     </div>
