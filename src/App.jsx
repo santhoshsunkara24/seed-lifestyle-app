@@ -16,11 +16,14 @@ const ProtectedRoute = () => {
   return currentUser ? <Outlet /> : <Navigate to="/login" replace />;
 };
 
+import ScrollToTop from './components/ScrollToTop';
+
 function App() {
   return (
     <AuthProvider>
       <DataProvider>
         <BrowserRouter>
+          <ScrollToTop />
           <Routes>
             <Route path="/login" element={<Login />} />
 

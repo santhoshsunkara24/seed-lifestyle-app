@@ -23,7 +23,7 @@ const Layout = () => {
     const navItems = [
         { name: 'Dashboard', path: '/', icon: LayoutDashboard },
         { name: 'Stock Entry', path: '/stock', icon: Layers },
-        { name: 'Sales', path: '/sales', icon: ShoppingBag },
+        { name: 'Sales Entry', path: '/sales', icon: ShoppingBag },
         { name: 'Expenses', path: '/expenses', icon: ReceiptText },
     ];
 

@@ -23,24 +23,38 @@ export const DataProvider = ({ children }) => {
 
     // Real-time Listeners
     useEffect(() => {
+        console.log("DataContext: Setting up listeners...");
+
         const qStock = query(collection(db, "stock"), orderBy("arrival_date", "desc"));
         const qSales = query(collection(db, "sales"), orderBy("sale_date", "desc"));
         const qExpenses = query(collection(db, "expenses"), orderBy("expense_date", "desc"));
 
         const unsubStock = onSnapshot(qStock, (snapshot) => {
+            console.log("DataContext: Stock snapshot received", snapshot.size);
             const stockData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            console.log("DataContext: Stock data processed", stockData);
             setStock(stockData);
+        }, (error) => {
+            console.error("DataContext: Stock snapshot error", error);
         });
 
         const unsubSales = onSnapshot(qSales, (snapshot) => {
+            console.log("DataContext: Sales snapshot received", snapshot.size);
             const salesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            console.log("DataContext: Sales data processed", salesData);
             setSales(salesData);
+        }, (error) => {
+            console.error("DataContext: Sales snapshot error", error);
         });
 
         const unsubExpenses = onSnapshot(qExpenses, (snapshot) => {
+            console.log("DataContext: Expenses snapshot received", snapshot.size);
             const expenseData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             setExpenses(expenseData);
             setLoading(false);
+        }, (error) => {
+            console.error("DataContext: Expenses snapshot error", error);
+            setLoading(false); // Ensure loading stops even on error
         });
 
         return () => {
@@ -202,8 +216,10 @@ export const DataProvider = ({ children }) => {
     const stats = {
         totalCollection: sales.reduce((acc, curr) => acc + (parseFloat(curr.amount_paid) || 0), 0),
         totalSalesValue: sales.reduce((acc, curr) => acc + (parseFloat(curr.total_amount_due) || 0), 0),
-        stockPurchasedValue: stock.reduce((acc, curr) => acc + (parseFloat(curr.total_stock_value) || 0), 0),
-        homeExpenses: expenses.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0),
+        stockValue: stock.reduce((acc, curr) => acc + (parseFloat(curr.total_stock_value) || 0), 0),
+        totalExpenses: expenses.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0),
+        totalBatches: stock.length,
+        expenseCount: expenses.length,
     };
 
     return (

@@ -8,6 +8,7 @@ const Expenses = () => {
     const { addExpense } = useData();
     const [loading, setLoading] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
+    const [errors, setErrors] = useState({});
     const [formData, setFormData] = useState({
         category: '',
         amount: '',
@@ -17,7 +18,11 @@ const Expenses = () => {
     const categories = ['Petrol', 'Electricity', 'Groceries', 'Rent', 'Mobile', 'Wifi', 'Other'];
 
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+        setFormData({ ...formData, [name]: value });
+        if (errors[name]) {
+            setErrors({ ...errors, [name]: '' });
+        }
     };
 
     const handleReset = () => {
@@ -25,12 +30,21 @@ const Expenses = () => {
         setShowSuccess(false);
     };
 
+    const validateForm = () => {
+        const newErrors = {};
+        if (!formData.category) newErrors.category = 'Please select a category';
+        if (!formData.amount) newErrors.amount = 'Please fill out this field';
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!validateForm()) return;
         setLoading(true);
         try {
             await new Promise(resolve => setTimeout(resolve, 500));
-            addExpense(formData);
+            await addExpense(formData);
             setShowSuccess(true);
         } catch (err) {
             console.error(err);
@@ -42,12 +56,14 @@ const Expenses = () => {
 
     if (showSuccess) {
         return (
-            <div className="max-w-2xl mx-auto bg-white rounded-3xl border border-gray-100 overflow-hidden">
-                <SuccessScreen
-                    title="Expense Logged"
-                    message={`Logged ₹${formData.amount} for ${formData.category} on ${formatDate(new Date().toISOString())}.`}
-                    onReset={handleReset}
-                />
+            <div className="min-h-[85vh] flex items-center justify-center">
+                <div className="w-full max-w-lg bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-xl">
+                    <SuccessScreen
+                        title="Expense Logged"
+                        message={`Logged ₹${formData.amount} for ${formData.category} on ${formatDate(new Date().toISOString())}.`}
+                        onReset={handleReset}
+                    />
+                </div>
             </div>
         );
     }
@@ -64,13 +80,12 @@ const Expenses = () => {
                 </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6" noValidate>
                 <div>
                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">Category</label>
                     <select
                         name="category"
-                        required
-                        className="w-full px-5 py-3 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all appearance-none font-semibold shadow-sm hover:shadow-md cursor-pointer text-gray-900 text-sm"
+                        className={`w-full px-5 py-3 bg-white border rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all appearance-none font-semibold cursor-pointer text-gray-900 text-sm ${errors.category ? 'border-rose-300' : 'border-gray-200'}`}
                         value={formData.category}
                         onChange={handleChange}
                     >
@@ -79,6 +94,7 @@ const Expenses = () => {
                             <option key={cat} value={cat}>{cat}</option>
                         ))}
                     </select>
+                    {errors.category && <p className="text-rose-500 text-xs mt-1.5 font-bold ml-1">{errors.category}</p>}
                 </div>
 
                 <div>
@@ -86,13 +102,13 @@ const Expenses = () => {
                     <input
                         type="number"
                         name="amount"
-                        required
                         min="0"
                         step="0.01"
-                        className="w-full px-5 py-3 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all font-semibold text-gray-900 shadow-sm hover:shadow-md text-sm"
+                        className={`w-full px-5 py-3 bg-white border rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all font-semibold text-gray-900 text-sm ${errors.amount ? 'border-rose-300' : 'border-gray-200'}`}
                         value={formData.amount}
                         onChange={handleChange}
                     />
+                    {errors.amount && <p className="text-rose-500 text-xs mt-1.5 font-bold ml-1">{errors.amount}</p>}
                 </div>
 
                 <div>
@@ -100,7 +116,7 @@ const Expenses = () => {
                     <textarea
                         name="description"
                         rows="3"
-                        className="w-full px-5 py-3 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all font-semibold text-gray-900 shadow-sm hover:shadow-md resize-none text-sm"
+                        className="w-full px-5 py-3 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all font-semibold text-gray-900 resize-none text-sm"
                         value={formData.description}
                         onChange={handleChange}
                         placeholder="Additional details..."
@@ -111,7 +127,7 @@ const Expenses = () => {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full flex items-center justify-center px-6 py-3 bg-emerald-600 text-white font-bold rounded-2xl hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-100 transition-all disabled:opacity-70 shadow-lg shadow-emerald-200"
+                        className="w-full flex items-center justify-center px-6 py-3 bg-emerald-600 text-white font-bold rounded-2xl hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-100 transition-all disabled:opacity-70"
                     >
                         {loading ? <Loader className="animate-spin mr-2 h-5 w-5" /> : <ReceiptText className="mr-2 h-5 w-5" />}
                         Log Expense

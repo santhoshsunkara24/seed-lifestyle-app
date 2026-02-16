@@ -3,6 +3,7 @@ import { Wallet, Warehouse, PiggyBank, CheckCircle2, Plus, CheckSquare, Trash2, 
 import { useData } from '../context/DataContext';
 
 import { formatDate } from '../utils/formatDate';
+import DatePicker from '../components/ui/DatePicker';
 
 const Dashboard = () => {
     const { stats, stock, sales, expenses, loading, addPayment, deleteSale, deleteStock, deleteExpense, updateSale, updateStock, updateExpense } = useData();
@@ -45,19 +46,21 @@ const Dashboard = () => {
         else if (activeTab === 'stock') data = stock;
         else if (activeTab === 'expenses') data = expenses;
 
-        return data.filter(item => {
+        console.log(`Dashboard: Filtering ${activeTab}`, { totalItems: data.length, data });
+
+        const result = data.filter(item => {
             // 1. Text Search
             const query = searchQuery.toLowerCase();
             let matchesSearch = false;
 
             if (activeTab === 'sales') {
-                matchesSearch = item.customer_name.toLowerCase().includes(query);
+                matchesSearch = item.customer_name?.toLowerCase().includes(query);
             } else if (activeTab === 'stock') {
-                matchesSearch = item.supplier_name.toLowerCase().includes(query) ||
-                    item.seed_name.toLowerCase().includes(query) ||
-                    item.lot_no.includes(query);
+                matchesSearch = item.supplier_name?.toLowerCase().includes(query) ||
+                    item.seed_name?.toLowerCase().includes(query) ||
+                    item.lot_no?.includes(query);
             } else if (activeTab === 'expenses') {
-                matchesSearch = item.category.toLowerCase().includes(query) ||
+                matchesSearch = item.category?.toLowerCase().includes(query) ||
                     (item.description && item.description.toLowerCase().includes(query));
             }
 
@@ -91,6 +94,9 @@ const Dashboard = () => {
 
             return true;
         });
+
+        console.log(`Dashboard: Filtered result for ${activeTab}`, result.length);
+        return result;
     };
 
     const filteredData = getFilteredData();
@@ -138,6 +144,14 @@ const Dashboard = () => {
         } else if (modalConfig.dataType === 'expense') {
             updateExpense(editForm);
         }
+        closeModal();
+    };
+
+    const handleDelete = async () => {
+        const { dataType, item } = modalConfig;
+        if (dataType === 'sale') await deleteSale(item.id);
+        else if (dataType === 'stock') await deleteStock(item.id);
+        else if (dataType === 'expense') await deleteExpense(item.id);
         closeModal();
     };
 
@@ -223,7 +237,7 @@ const Dashboard = () => {
                                 {tab === 'sales' && <Wallet size={18} strokeWidth={activeTab === 'sales' ? 0 : 2} fill={activeTab === 'sales' ? "currentColor" : "none"} className={activeTab === 'sales' ? "text-emerald-500" : ""} />}
                                 {tab === 'stock' && <Warehouse size={18} strokeWidth={activeTab === 'stock' ? 0 : 2} fill={activeTab === 'stock' ? "currentColor" : "none"} className={activeTab === 'stock' ? "text-blue-500" : ""} />}
                                 {tab === 'expenses' && <PiggyBank size={18} strokeWidth={activeTab === 'expenses' ? 0 : 2} fill={activeTab === 'expenses' ? "currentColor" : "none"} className={activeTab === 'expenses' ? "text-rose-500" : ""} />}
-                                {tab === 'sales' ? 'Sales Tracker' : tab === 'stock' ? 'Inventory Status' : 'Expense Log'}
+                                {tab === 'sales' ? 'Sales Tracker' : tab === 'stock' ? 'Stock Tracker' : 'Expense Log'}
                             </button>
                         ))}
                     </div>
@@ -231,7 +245,7 @@ const Dashboard = () => {
                     {/* Filters Bar */}
                     <div className="w-full flex flex-col md:flex-row gap-5 mb-8 pt-2 items-center">
                         {/* Search */}
-                        <div className="relative flex-grow w-full md:w-auto group">
+                        <div className="relative w-full md:w-72 group">
                             <input
                                 type="text"
                                 placeholder={`Search ${activeTab}...`}
@@ -257,49 +271,36 @@ const Dashboard = () => {
                             <Filter className="absolute left-4 top-3.5 h-4 w-4 text-gray-400" strokeWidth={2} />
                         </div>
 
-                        {/* Date Range with Custom DD-MM-YYYY Mask */}
+                        {/* Date Picker using Custom Component */}
                         <div className="flex gap-3 items-center w-full md:w-auto">
-                            <div className="relative w-full md:w-40 group">
-                                {/* Visual Mask */}
-                                <div className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-500 uppercase tracking-wide flex items-center h-[42px]">
-                                    {dateRange.start ? formatDate(dateRange.start) : <span className="text-gray-300">Start Date</span>}
-                                </div>
-                                <Calendar className="absolute left-3.5 top-3.5 h-4 w-4 text-gray-300" strokeWidth={2} />
-                                {/* Hidden Trigger */}
-                                <input
-                                    type="date"
-                                    value={dateRange.start}
-                                    onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
-                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                                />
-                            </div>
+                            <DatePicker
+                                placeholder="Start Date"
+                                selectedDate={dateRange.start}
+                                onChange={(date) => setDateRange({ ...dateRange, start: date })}
+                            />
                             <span className="text-gray-300 font-light">/</span>
-                            <div className="relative w-full md:w-40 group">
-                                {/* Visual Mask */}
-                                <div className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-500 uppercase tracking-wide flex items-center h-[42px]">
-                                    {dateRange.end ? formatDate(dateRange.end) : <span className="text-gray-300">End Date</span>}
-                                </div>
-                                <Calendar className="absolute left-3.5 top-3.5 h-4 w-4 text-gray-300" strokeWidth={2} />
-                                {/* Hidden Trigger */}
-                                <input
-                                    type="date"
-                                    value={dateRange.end}
-                                    onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
-                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                                />
-                            </div>
+                            <DatePicker
+                                placeholder="End Date"
+                                selectedDate={dateRange.end}
+                                onChange={(date) => setDateRange({ ...dateRange, end: date })}
+                            />
                         </div>
 
                         {/* Clear Filters */}
-                        {(searchQuery || selectedEntity || dateRange.start || dateRange.end) && (
-                            <button
-                                onClick={() => { setSearchQuery(''); setSelectedEntity(''); setDateRange({ start: '', end: '' }) }}
-                                className="p-3 text-rose-500 hover:bg-rose-50 rounded-lg transition-all border border-transparent hover:border-rose-100"
-                                title="Clear Filters"
-                            >
-                                <X size={20} strokeWidth={2} />
-                            </button>
-                        )}
+                        {/* Clear Filters */}
+                        <button
+                            onClick={() => { setSearchQuery(''); setSelectedEntity(''); setDateRange({ start: '', end: '' }) }}
+                            disabled={!searchQuery && !selectedEntity && !dateRange.start && !dateRange.end}
+                            className={`
+                                p-3 rounded-lg transition-all border flex items-center justify-center
+                                ${searchQuery || selectedEntity || dateRange.start || dateRange.end
+                                    ? 'text-rose-500 hover:bg-rose-50 border-transparent hover:border-rose-100 cursor-pointer'
+                                    : 'text-gray-200 border-transparent cursor-not-allowed'}
+                            `}
+                            title="Clear Filters"
+                        >
+                            <X size={20} strokeWidth={2.5} />
+                        </button>
                     </div>
                 </div>
 
@@ -309,13 +310,13 @@ const Dashboard = () => {
                             <table className="w-full text-base text-left text-gray-600">
                                 <thead className="text-sm text-gray-500 font-bold uppercase tracking-widest border-b border-gray-100">
                                     <tr>
-                                        <th className="px-8 py-6 font-semibold">Date</th>
-                                        <th className="px-8 py-6 font-semibold">Customer</th>
-                                        <th className="px-8 py-6 font-semibold">Total</th>
-                                        <th className="px-8 py-6 font-semibold">Paid</th>
-                                        <th className="px-8 py-6 font-semibold">Due</th>
-                                        <th className="px-8 py-6 font-semibold">Fast Action</th>
-                                        <th className="px-8 py-6 text-center font-semibold">Manage</th>
+                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">Date</th>
+                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">Customer</th>
+                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">Total</th>
+                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">Paid</th>
+                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">Due</th>
+                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">Quick Pay</th>
+                                        <th className="px-8 py-6 text-center font-semibold whitespace-nowrap">Manage</th>
                                     </tr>
                                 </thead>
                                 <tbody className="">
@@ -324,48 +325,53 @@ const Dashboard = () => {
                                     ) : (
                                         filteredData.map((sale) => (
                                             <tr key={sale.id} className="group hover:bg-gray-50/70 transition-colors border-b border-gray-100 last:border-0">
-                                                <td className="px-8 py-6 text-gray-500 font-mono text-xs tracking-wider">{formatDate(sale.sale_date)}</td>
-                                                <td className="px-8 py-6 font-bold text-gray-900 text-sm">{sale.customer_name}</td>
-                                                <td className="px-8 py-6 text-gray-700 font-semibold text-sm">₹{sale.total_amount_due.toLocaleString()}</td>
-                                                <td className="px-8 py-6 text-emerald-600 font-bold text-sm">+₹{sale.amount_paid.toLocaleString()}</td>
+                                                <td className="px-8 py-6 text-gray-500 font-mono text-xs tracking-wider whitespace-nowrap">{formatDate(sale.sale_date)}</td>
+                                                <td className="px-8 py-6 font-bold text-gray-900 text-sm whitespace-nowrap">{sale.customer_name}</td>
+                                                <td className="px-8 py-6 text-gray-700 font-semibold text-sm whitespace-nowrap">₹{sale.total_amount_due.toLocaleString()}</td>
+                                                <td className="px-8 py-6 text-emerald-600 font-bold text-sm whitespace-nowrap">+₹{sale.amount_paid.toLocaleString()}</td>
                                                 <td className="px-8 py-6">
                                                     {sale.total_amount_due - sale.amount_paid > 0 ? (
-                                                        <span className="text-rose-500 font-bold bg-rose-50 px-2.5 py-1 rounded-lg text-xs">₹{(sale.total_amount_due - sale.amount_paid).toLocaleString()} DUE</span>
+                                                        <span className="text-rose-500 font-bold bg-rose-50 px-2.5 py-1 rounded-lg text-xs whitespace-nowrap">₹{(sale.total_amount_due - sale.amount_paid).toLocaleString()} DUE</span>
                                                     ) : (
-                                                        <span className="text-emerald-500 font-bold bg-emerald-50 px-2.5 py-1 rounded-lg text-xs">PAID</span>
+                                                        <span className="text-emerald-500 font-bold bg-emerald-50 px-2.5 py-1 rounded-lg text-xs whitespace-nowrap">PAID</span>
                                                     )}
                                                 </td>
                                                 <td className="px-8 py-6">
                                                     {sale.is_fully_paid ? (
-                                                        <span className="inline-flex items-center text-emerald-600 bg-emerald-50/50 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border border-emerald-100">
+                                                        <span className="inline-flex items-center text-emerald-600 bg-emerald-50/50 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border border-emerald-100 whitespace-nowrap">
                                                             Paid
                                                         </span>
                                                     ) : (
-                                                        <div className="flex items-center gap-2 h-10 opacity-60 group-hover:opacity-100 transition-opacity">
-                                                            <button
-                                                                onClick={() => {
-                                                                    const amount = prompt(`Record Payment (₹${sale.total_amount_due - sale.amount_paid} due):`);
-                                                                    if (amount) addPayment(sale.id, parseFloat(amount));
-                                                                }}
-                                                                className="text-emerald-600 hover:text-emerald-900 font-bold text-xs bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-lg transition-colors mr-2"
-                                                            >
-                                                                Pay
-                                                            </button>
-                                                            <button
-                                                                onClick={() => settlePayment(sale)}
-                                                                className="h-9 w-9 flex items-center justify-center text-emerald-600 bg-white border border-emerald-100 hover:bg-emerald-50 rounded-lg transition-colors"
-                                                                title="Mark Fully Paid"
-                                                            >
-                                                                <CheckSquare size={18} strokeWidth={2} />
-                                                            </button>
+                                                        <div className="flex items-center gap-2 h-10 opacity-100 transition-opacity">
+                                                            <div className="flex items-center bg-gray-50 rounded-lg border border-gray-200 p-1">
+                                                                <span className="text-gray-400 font-bold ml-2 text-xs">₹</span>
+                                                                <input
+                                                                    type="number"
+                                                                    placeholder="Amount"
+                                                                    className="w-20 bg-transparent border-none focus:ring-0 text-sm font-bold text-gray-900 placeholder:text-gray-400 p-1 outline-none"
+                                                                    value={paymentAmounts[sale.id] || ''}
+                                                                    onChange={(e) => handlePaymentChange(sale.id, e.target.value)}
+                                                                    onKeyDown={(e) => {
+                                                                        if (e.key === 'Enter') submitPayment(sale.id);
+                                                                    }}
+                                                                />
+                                                                <button
+                                                                    onClick={() => submitPayment(sale.id)}
+                                                                    disabled={!paymentAmounts[sale.id]}
+                                                                    className="bg-emerald-100 hover:bg-emerald-200 text-emerald-700 p-1.5 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                                    title="Confirm Payment"
+                                                                >
+                                                                    <CheckCircle2 size={16} strokeWidth={2.5} />
+                                                                </button>
+                                                            </div>
                                                         </div>
                                                     )}
                                                 </td>
                                                 <td className="px-8 py-6 text-center">
-                                                    <div className="flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <div className="flex justify-center gap-2 transition-opacity">
                                                         <button onClick={() => openModal(sale, 'sale', 'view')} className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-gray-100 rounded-full transition-colors"><Eye size={18} strokeWidth={1.5} /></button>
                                                         <button onClick={() => openModal(sale, 'sale', 'edit')} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-gray-100 rounded-full transition-colors"><Pencil size={18} strokeWidth={1.5} /></button>
-                                                        <button onClick={() => deleteSale(sale.id)} className="p-2 text-gray-400 hover:text-rose-600 hover:bg-gray-100 rounded-full transition-colors"><Trash2 size={18} strokeWidth={1.5} /></button>
+                                                        <button onClick={() => openModal(sale, 'sale', 'delete')} className="p-2 text-gray-400 hover:text-rose-600 hover:bg-gray-100 rounded-full transition-colors"><Trash2 size={18} strokeWidth={1.5} /></button>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -381,14 +387,14 @@ const Dashboard = () => {
                             <table className="w-full text-base text-left text-gray-600">
                                 <thead className="text-sm text-gray-500 font-bold uppercase tracking-widest border-b border-gray-100">
                                     <tr>
-                                        <th className="px-8 py-6 font-semibold">Supplier</th>
-                                        <th className="px-8 py-6 font-semibold">Seed Lot</th>
-                                        <th className="px-8 py-6 font-semibold">Price Per Packet</th>
-                                        <th className="px-8 py-6 font-semibold">Total Value</th>
-                                        <th className="px-8 py-6 font-semibold">Arrival</th>
-                                        <th className="px-8 py-6 font-semibold">Stock Level</th>
-                                        <th className="px-8 py-6 font-semibold">Status</th>
-                                        <th className="px-8 py-6 text-center font-semibold">Actions</th>
+                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">Supplier</th>
+                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">Seed Lot</th>
+                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">Price Per Packet</th>
+                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">Total Value</th>
+                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">Arrival</th>
+                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">Stock Level</th>
+                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">Status</th>
+                                        <th className="px-8 py-6 text-center font-semibold whitespace-nowrap">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="">
@@ -397,30 +403,29 @@ const Dashboard = () => {
                                     ) : (
                                         filteredData.map((batch) => (
                                             <tr key={batch.id} className="group hover:bg-gray-50/70 transition-colors border-b border-gray-100 last:border-0">
-                                                <td className="px-8 py-6 text-gray-900 font-bold text-sm">{batch.supplier_name}</td>
+                                                <td className="px-8 py-6 text-gray-900 font-bold text-sm whitespace-nowrap">{batch.supplier_name}</td>
                                                 <td className="px-8 py-6">
                                                     <div className="flex flex-col">
-                                                        <span className="text-gray-900 font-semibold text-sm">{batch.seed_name}</span>
-                                                        <span className="text-gray-500 text-xs">{batch.lot_no}</span>
-                                                        <span className="text-xs text-gray-500 font-mono tracking-wider">#{batch.lot_no}</span>
+                                                        <span className="text-gray-900 font-semibold text-sm whitespace-nowrap">{batch.seed_name}</span>
+                                                        <span className="text-xs text-gray-500 font-mono tracking-wider whitespace-nowrap">#{batch.lot_no}</span>
                                                     </div>
                                                 </td>
-                                                <td className="px-8 py-6 text-gray-900 font-bold text-sm">₹{batch.cost_per_packet}</td>
-                                                <td className="px-8 py-6 text-gray-700 font-semibold text-sm">₹{(batch.cost_per_packet * batch.total_packets_initial).toLocaleString()}</td>
-                                                <td className="px-8 py-6 text-gray-500 text-xs tracking-wider font-mono">{formatDate(batch.arrival_date)}</td>
-                                                <td className="px-8 py-6 font-mono text-gray-800 font-bold bg-gray-50/80 rounded-lg text-sm">{batch.packets_available} <span className="text-[10px] font-normal text-gray-500">pkts</span></td>
+                                                <td className="px-8 py-6 text-gray-900 font-bold text-sm whitespace-nowrap">₹{batch.cost_per_packet}</td>
+                                                <td className="px-8 py-6 text-gray-700 font-semibold text-sm whitespace-nowrap">₹{(batch.cost_per_packet * batch.total_packets_initial).toLocaleString()}</td>
+                                                <td className="px-8 py-6 text-gray-500 text-xs tracking-wider font-mono whitespace-nowrap">{formatDate(batch.arrival_date)}</td>
+                                                <td className="px-8 py-6 font-mono text-gray-800 font-bold bg-gray-50/80 rounded-lg text-sm whitespace-nowrap">{batch.packets_available} <span className="text-[10px] font-normal text-gray-500">pkts</span></td>
                                                 <td className="px-8 py-6">
                                                     {batch.packets_available > 0 ? (
-                                                        <span className="inline-flex items-center text-emerald-600 bg-emerald-50/50 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border border-emerald-100">In Stock</span>
+                                                        <span className="inline-flex items-center text-emerald-600 bg-emerald-50/50 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border border-emerald-100 whitespace-nowrap">In Stock</span>
                                                     ) : (
-                                                        <span className="inline-flex items-center text-rose-600 bg-rose-50/50 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border border-rose-100">Out of Stock</span>
+                                                        <span className="inline-flex items-center text-rose-600 bg-rose-50/50 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border border-rose-100 whitespace-nowrap">Out of Stock</span>
                                                     )}
                                                 </td>
                                                 <td className="px-8 py-6 text-center">
-                                                    <div className="flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <div className="flex justify-center gap-2 transition-opacity">
                                                         <button onClick={() => openModal(batch, 'stock', 'view')} className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-gray-100 rounded-full transition-colors"><Eye size={18} strokeWidth={1.5} /></button>
                                                         <button onClick={() => openModal(batch, 'stock', 'edit')} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-gray-100 rounded-full transition-colors"><Pencil size={18} strokeWidth={1.5} /></button>
-                                                        <button onClick={() => deleteStock(batch.id)} className="p-2 text-gray-400 hover:text-rose-600 hover:bg-gray-100 rounded-full transition-colors"><Trash2 size={18} strokeWidth={1.5} /></button>
+                                                        <button onClick={() => openModal(batch, 'stock', 'delete')} className="p-2 text-gray-400 hover:text-rose-600 hover:bg-gray-100 rounded-full transition-colors"><Trash2 size={18} strokeWidth={1.5} /></button>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -436,11 +441,11 @@ const Dashboard = () => {
                             <table className="w-full text-sm text-left text-gray-500">
                                 <thead className="text-xs text-gray-400 font-bold uppercase tracking-widest border-b border-gray-100">
                                     <tr>
-                                        <th className="px-8 py-6 font-semibold">Date</th>
-                                        <th className="px-8 py-6 font-semibold">Category</th>
-                                        <th className="px-8 py-6 font-semibold">Description</th>
-                                        <th className="px-8 py-6 font-semibold">Amount</th>
-                                        <th className="px-8 py-6 text-center font-semibold">Actions</th>
+                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">Date</th>
+                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">Category</th>
+                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">Description</th>
+                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">Amount</th>
+                                        <th className="px-8 py-6 text-center font-semibold whitespace-nowrap">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="">
@@ -449,17 +454,17 @@ const Dashboard = () => {
                                     ) : (
                                         filteredData.map((exp) => (
                                             <tr key={exp.id} className="group hover:bg-gray-50/70 transition-colors border-b border-gray-100 last:border-0">
-                                                <td className="px-8 py-6 text-gray-500 font-mono text-sm tracking-wider">{formatDate(exp.expense_date)}</td>
+                                                <td className="px-8 py-6 text-gray-500 font-mono text-sm tracking-wider whitespace-nowrap">{formatDate(exp.expense_date)}</td>
                                                 <td className="px-8 py-6">
-                                                    <span className="bg-white text-gray-700 px-3 py-1.5 rounded-lg text-sm font-bold border border-gray-300 uppercase tracking-wider shadow-sm">{exp.category}</span>
+                                                    <span className="bg-white text-gray-700 px-3 py-1.5 rounded-lg text-sm font-bold border border-gray-300 uppercase tracking-wider shadow-sm whitespace-nowrap">{exp.category}</span>
                                                 </td>
-                                                <td className="px-8 py-6 text-gray-500 italic text-base">{exp.description || '-'}</td>
-                                                <td className="px-8 py-6 font-bold text-gray-900 text-lg">₹{exp.amount}</td>
+                                                <td className="px-8 py-6 text-gray-500 italic text-base whitespace-nowrap">{exp.description || '-'}</td>
+                                                <td className="px-8 py-6 font-bold text-gray-900 text-lg whitespace-nowrap">₹{exp.amount}</td>
                                                 <td className="px-8 py-6 text-center">
-                                                    <div className="flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <div className="flex justify-center gap-2 transition-opacity">
                                                         <button onClick={() => openModal(exp, 'expense', 'view')} className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-gray-100 rounded-full transition-colors"><Eye size={18} strokeWidth={1.5} /></button>
                                                         <button onClick={() => openModal(exp, 'expense', 'edit')} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-gray-100 rounded-full transition-colors"><Pencil size={18} strokeWidth={1.5} /></button>
-                                                        <button onClick={() => deleteExpense(exp.id)} className="p-2 text-gray-400 hover:text-rose-600 hover:bg-gray-100 rounded-full transition-colors"><Trash2 size={18} strokeWidth={1.5} /></button>
+                                                        <button onClick={() => openModal(exp, 'expense', 'delete')} className="p-2 text-gray-400 hover:text-rose-600 hover:bg-gray-100 rounded-full transition-colors"><Trash2 size={18} strokeWidth={1.5} /></button>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -479,10 +484,12 @@ const Dashboard = () => {
                         <div className="px-8 py-6 border-b border-gray-100 flex justify-between items-center bg-white">
                             <div>
                                 <h3 className="text-xl font-bold text-gray-900 capitalize tracking-tight">
-                                    {modalConfig.type === 'edit' ? 'Edit ' : ''}
+                                    {modalConfig.type === 'edit' ? 'Edit ' : modalConfig.type === 'delete' ? 'Delete ' : ''}
                                     {modalConfig.dataType === 'sale' ? 'Sale Details' : modalConfig.dataType === 'stock' ? 'Stock Batch' : 'Expense Record'}
                                 </h3>
-                                <p className="text-xs text-gray-500 mt-1 font-medium">Make changes or view details below.</p>
+                                <p className="text-xs text-gray-500 mt-1 font-medium">
+                                    {modalConfig.type === 'delete' ? 'This action cannot be undone.' : 'Make changes or view details below.'}
+                                </p>
                             </div>
                             <button onClick={closeModal} className="p-2 bg-gray-50 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
                                 <X size={20} />
@@ -524,6 +531,20 @@ const Dashboard = () => {
                                 </>
                             )}
 
+                            {/* DELETE MODE */}
+                            {modalConfig.type === 'delete' && (
+                                <div className="text-center py-6">
+                                    <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                                        <Trash2 size={32} strokeWidth={1.5} />
+                                    </div>
+                                    <h4 className="text-lg font-bold text-gray-900 mb-2">Are you sure?</h4>
+                                    <p className="text-gray-500 text-sm max-w-xs mx-auto">
+                                        You are about to delete this {modalConfig.dataType === 'sale' ? 'sale record' : modalConfig.dataType === 'stock' ? 'stock batch' : 'expense entry'}.
+                                        This process cannot be undone.
+                                    </p>
+                                </div>
+                            )}
+
                             {/* EDIT MODE */}
                             {modalConfig.type === 'edit' && (
                                 <div className="space-y-5">
@@ -556,12 +577,17 @@ const Dashboard = () => {
                         </div>
 
                         <div className="p-6 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
-                            <button onClick={closeModal} className="px-5 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors text-sm font-semibold shadow-sm">
+                            <button onClick={closeModal} className="px-5 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors text-sm font-semibold">
                                 Close
                             </button>
                             {modalConfig.type === 'edit' && (
-                                <button onClick={saveEdit} className="px-5 py-2.5 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-colors text-sm font-semibold flex items-center shadow-lg shadow-emerald-200">
+                                <button onClick={saveEdit} className="px-5 py-2.5 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-colors text-sm font-semibold flex items-center">
                                     <Save size={18} className="mr-2" /> Save Changes
+                                </button>
+                            )}
+                            {modalConfig.type === 'delete' && (
+                                <button onClick={handleDelete} className="px-5 py-2.5 bg-rose-600 text-white rounded-xl hover:bg-rose-700 transition-colors text-sm font-semibold flex items-center">
+                                    <Trash2 size={18} className="mr-2" /> Delete
                                 </button>
                             )}
                         </div>

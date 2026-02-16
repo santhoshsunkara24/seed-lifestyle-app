@@ -25,7 +25,7 @@ const SuccessScreen = ({ title, message, onReset }) => {
             <div className="flex flex-col gap-3 w-full max-w-xs">
                 <button
                     onClick={onReset}
-                    className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-full font-bold hover:bg-gray-800 transition-colors shadow-md text-sm"
+                    className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-full font-bold hover:bg-emerald-700 transition-colors text-sm"
                 >
                     <Plus size={16} strokeWidth={2.5} />
                     Add Another
