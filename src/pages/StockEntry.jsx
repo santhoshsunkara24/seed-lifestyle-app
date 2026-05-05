@@ -16,7 +16,8 @@ const StockEntry = () => {
         arrival_date: new Date().toISOString().split('T')[0],
         total_packets_initial: '',
         cost_per_packet: '',
-        weight_per_packet: ''
+        weight_per_packet: '',
+        expiry_date: ''
     });
 
     const handleChange = (e) => {
@@ -35,7 +36,8 @@ const StockEntry = () => {
             arrival_date: new Date().toISOString().split('T')[0],
             total_packets_initial: '',
             cost_per_packet: '',
-            weight_per_packet: ''
+            weight_per_packet: '',
+            expiry_date: ''
         });
         setShowSuccess(false);
     };
@@ -127,17 +129,30 @@ const StockEntry = () => {
                     </div>
                 </div>
 
-                <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">Lot Number</label>
-                    <input
-                        type="text"
-                        name="lot_no"
-                        className={`w-full px-5 py-3 bg-white border rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all font-semibold text-gray-900 text-sm ${errors.lot_no ? 'border-rose-300' : 'border-gray-200'}`}
-                        value={formData.lot_no}
-                        onChange={handleChange}
-                        placeholder="Batch ID"
-                    />
-                    {errors.lot_no && <p className="text-rose-500 text-xs mt-1.5 font-bold ml-1">{errors.lot_no}</p>}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">Lot Number</label>
+                        <input
+                            type="text"
+                            name="lot_no"
+                            className={`w-full px-5 py-3 bg-white border rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all font-semibold text-gray-900 text-sm ${errors.lot_no ? 'border-rose-300' : 'border-gray-200'}`}
+                            value={formData.lot_no}
+                            onChange={handleChange}
+                            placeholder="Batch ID"
+                        />
+                        {errors.lot_no && <p className="text-rose-500 text-xs mt-1.5 font-bold ml-1">{errors.lot_no}</p>}
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">Expiry Date</label>
+                        <input
+                            type="date"
+                            name="expiry_date"
+                            className={`w-full px-5 py-3 bg-white border rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all font-semibold text-gray-900 text-sm ${errors.expiry_date ? 'border-rose-300' : 'border-gray-200'}`}
+                            value={formData.expiry_date}
+                            onChange={handleChange}
+                        />
+                        {errors.expiry_date && <p className="text-rose-500 text-xs mt-1.5 font-bold ml-1">{errors.expiry_date}</p>}
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

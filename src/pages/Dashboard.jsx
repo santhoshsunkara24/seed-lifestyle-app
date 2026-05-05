@@ -191,11 +191,12 @@ const Dashboard = () => {
                 ];
             });
         } else if (activeTab === 'stock') {
-            columns = ["Supplier", "Seed", "Lot", "Weight", "Arrival", "Initial", "Available", "Total Cost"];
+            columns = ["Supplier", "Seed", "Lot", "Expiry", "Weight", "Arrival", "Initial", "Available", "Total Cost"];
             data = filteredData.map(item => [
                 item.supplier_name,
                 item.seed_name,
                 item.lot_no,
+                item.expiry_date ? formatDate(item.expiry_date) : '-',
                 item.weight_per_packet || '-',
                 formatDate(item.arrival_date),
                 item.total_packets_initial,
@@ -487,6 +488,7 @@ const Dashboard = () => {
                                     <tr>
                                         <th className="px-8 py-6 font-semibold whitespace-nowrap">Supplier</th>
                                         <th className="px-8 py-6 font-semibold whitespace-nowrap">Seed Lot</th>
+                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">Expiry</th>
                                         <th className="px-8 py-6 font-semibold whitespace-nowrap">Price Per Packet</th>
                                         <th className="px-8 py-6 font-semibold whitespace-nowrap">Total Value</th>
                                         <th className="px-8 py-6 font-semibold whitespace-nowrap">Arrival</th>
@@ -498,7 +500,7 @@ const Dashboard = () => {
                                 </thead>
                                 <tbody className="">
                                     {filteredData.length === 0 ? (
-                                        <tr><td colSpan="9" className="px-8 py-16 text-center text-gray-400 font-medium">No stock data available.</td></tr>
+                                        <tr><td colSpan="10" className="px-8 py-16 text-center text-gray-400 font-medium">No stock data available.</td></tr>
                                     ) : (
                                         filteredData.map((batch) => (
                                             <tr key={batch.id} className="group hover:bg-gray-50/70 transition-colors border-b border-gray-100 last:border-0">
@@ -509,6 +511,7 @@ const Dashboard = () => {
                                                         <span className="text-xs text-gray-500 font-mono tracking-wider whitespace-nowrap">#{batch.lot_no}</span>
                                                     </div>
                                                 </td>
+                                                <td className="px-8 py-6 text-rose-600 font-semibold text-xs whitespace-nowrap">{batch.expiry_date ? formatDate(batch.expiry_date) : '-'}</td>
                                                 <td className="px-8 py-6 text-gray-900 font-bold text-sm whitespace-nowrap">₹{batch.cost_per_packet}</td>
                                                 <td className="px-8 py-6 text-gray-700 font-semibold text-sm whitespace-nowrap">₹{(batch.cost_per_packet * batch.total_packets_initial).toLocaleString()}</td>
                                                 <td className="px-8 py-6 text-gray-500 text-xs tracking-wider font-mono whitespace-nowrap">{formatDate(batch.arrival_date)}</td>
@@ -616,6 +619,7 @@ const Dashboard = () => {
                                             <DetailRow label="Supplier" value={modalConfig.item.supplier_name} />
                                             <DetailRow label="Seed Name" value={modalConfig.item.seed_name} highlight />
                                             <DetailRow label="Lot Number" value={modalConfig.item.lot_no} />
+                                            <DetailRow label="Expiry Date" value={modalConfig.item.expiry_date ? formatDate(modalConfig.item.expiry_date) : 'N/A'} />
                                             <div className="h-px bg-gray-100 my-2"></div>
                                             <DetailRow label="Total Packets" value={modalConfig.item.total_packets_initial} />
                                             <DetailRow label="Weight / Pkt" value={modalConfig.item.weight_per_packet || '-'} />
@@ -663,6 +667,7 @@ const Dashboard = () => {
                                             <Input label="Seed Name" name="seed_name" value={editForm.seed_name} onChange={handleEditChange} />
                                             <Input label="Lot Number" name="lot_no" value={editForm.lot_no} onChange={handleEditChange} />
                                             <Input label="Arrival Date" name="arrival_date" type="date" value={editForm.arrival_date} onChange={handleEditChange} />
+                                            <Input label="Expiry Date" name="expiry_date" type="date" value={editForm.expiry_date} onChange={handleEditChange} />
                                             <Input label="Cost per Packet (₹)" name="cost_per_packet" type="number" value={editForm.cost_per_packet} onChange={handleEditChange} />
                                             <Input label="Weight per Packet" name="weight_per_packet" value={editForm.weight_per_packet} onChange={handleEditChange} />
                                             <Input label="Initial Packets (Tracked)" name="total_packets_initial" type="number" value={editForm.total_packets_initial} onChange={handleEditChange} />
