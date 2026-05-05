@@ -1,6 +1,8 @@
 import React, { useState, useMemo } from 'react';
-import { Wallet, Warehouse, PiggyBank, CheckCircle2, Plus, CheckSquare, Trash2, X, MoveUpRight, Pencil, Save, Eye, Search, Filter, Calendar } from 'lucide-react';
+import { Wallet, Warehouse, PiggyBank, CheckCircle2, Plus, CheckSquare, Trash2, X, MoveUpRight, Pencil, Save, Eye, Search, Filter, Calendar, Download } from 'lucide-react';
 import { useData } from '../context/DataContext';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 import { formatDate } from '../utils/formatDate';
 import DatePicker from '../components/ui/DatePicker';
@@ -140,7 +142,11 @@ const Dashboard = () => {
         if (modalConfig.dataType === 'sale') {
             updateSale(editForm);
         } else if (modalConfig.dataType === 'stock') {
-            updateStock(editForm);
+            const updatedStock = {
+                ...editForm,
+                total_stock_value: (parseInt(editForm.total_packets_initial) || 0) * (parseFloat(editForm.cost_per_packet) || 0)
+            };
+            updateStock(updatedStock);
         } else if (modalConfig.dataType === 'expense') {
             updateExpense(editForm);
         }
@@ -153,6 +159,69 @@ const Dashboard = () => {
         else if (dataType === 'stock') await deleteStock(item.id);
         else if (dataType === 'expense') await deleteExpense(item.id);
         closeModal();
+    };
+
+    const handleDownloadPDF = () => {
+        const doc = new jsPDF();
+        const title = activeTab.charAt(0).toUpperCase() + activeTab.slice(1) + " Report";
+        const date = formatDate(new Date().toISOString());
+
+        doc.setFontSize(18);
+        doc.text(title, 14, 22);
+        doc.setFontSize(11);
+        doc.setTextColor(100);
+        doc.text(`Generated on: ${date}`, 14, 30);
+
+        let columns = [];
+        let data = [];
+
+        if (activeTab === 'sales') {
+            columns = ["Date", "Customer", "Product", "Qty", "Total", "Paid", "Due"];
+            data = filteredData.map(item => {
+                const stockItem = stock.find(s => s.id === item.stock_batch_id);
+                const stockLabel = stockItem ? `${stockItem.seed_name} (${stockItem.lot_no})` : 'Unknown Stock';
+                return [
+                    formatDate(item.sale_date),
+                    item.customer_name,
+                    stockLabel,
+                    item.packets_sold,
+                    `Rs. ${item.total_amount_due.toLocaleString()}`,
+                    `Rs. ${item.amount_paid.toLocaleString()}`,
+                    `Rs. ${(item.total_amount_due - item.amount_paid).toLocaleString()}`
+                ];
+            });
+        } else if (activeTab === 'stock') {
+            columns = ["Supplier", "Seed", "Lot", "Weight", "Arrival", "Initial", "Available", "Total Cost"];
+            data = filteredData.map(item => [
+                item.supplier_name,
+                item.seed_name,
+                item.lot_no,
+                item.weight_per_packet || '-',
+                formatDate(item.arrival_date),
+                item.total_packets_initial,
+                item.packets_available,
+                `Rs. ${(item.total_stock_value || 0).toLocaleString()}`
+            ]);
+        } else if (activeTab === 'expenses') {
+            columns = ["Date", "Category", "Description", "Amount"];
+            data = filteredData.map(item => [
+                formatDate(item.expense_date),
+                item.category,
+                item.description || '-',
+                `Rs. ${item.amount.toLocaleString()}`
+            ]);
+        }
+
+        autoTable(doc, {
+            startY: 40,
+            head: [columns],
+            body: data,
+            theme: 'striped',
+            headStyles: { fillColor: [5, 150, 105] }, // emerald-600
+            styles: { fontSize: 9 }
+        });
+
+        doc.save(`${activeTab}_report_${new Date().toISOString().split('T')[0]}.pdf`);
     };
 
 
@@ -287,7 +356,6 @@ const Dashboard = () => {
                         </div>
 
                         {/* Clear Filters */}
-                        {/* Clear Filters */}
                         <button
                             onClick={() => { setSearchQuery(''); setSelectedEntity(''); setDateRange({ start: '', end: '' }) }}
                             disabled={!searchQuery && !selectedEntity && !dateRange.start && !dateRange.end}
@@ -301,6 +369,22 @@ const Dashboard = () => {
                         >
                             <X size={20} strokeWidth={2.5} />
                         </button>
+
+                        {/* Download PDF */}
+                        <button
+                            onClick={handleDownloadPDF}
+                            disabled={filteredData.length === 0}
+                            className={`
+                                p-3 rounded-lg transition-all border flex items-center justify-center gap-2 px-4 font-bold text-sm
+                                ${filteredData.length > 0
+                                    ? 'bg-emerald-600 text-white border-transparent hover:bg-emerald-700 shadow-sm'
+                                    : 'text-gray-300 border-gray-100 bg-gray-50 cursor-not-allowed'}
+                            `}
+                            title="Download PDF Report"
+                        >
+                            <Download size={18} strokeWidth={2.5} />
+                            <span>PDF</span>
+                        </button>
                     </div>
                 </div>
 
@@ -312,6 +396,8 @@ const Dashboard = () => {
                                     <tr>
                                         <th className="px-8 py-6 font-semibold whitespace-nowrap">Date</th>
                                         <th className="px-8 py-6 font-semibold whitespace-nowrap">Customer</th>
+                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">Product</th>
+                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">Qty</th>
                                         <th className="px-8 py-6 font-semibold whitespace-nowrap">Total</th>
                                         <th className="px-8 py-6 font-semibold whitespace-nowrap">Paid</th>
                                         <th className="px-8 py-6 font-semibold whitespace-nowrap">Due</th>
@@ -321,12 +407,24 @@ const Dashboard = () => {
                                 </thead>
                                 <tbody className="">
                                     {filteredData.length === 0 ? (
-                                        <tr><td colSpan="7" className="px-8 py-16 text-center text-gray-400 font-medium">No sales matches found.</td></tr>
+                                        <tr><td colSpan="9" className="px-8 py-16 text-center text-gray-400 font-medium">No sales matches found.</td></tr>
                                     ) : (
                                         filteredData.map((sale) => (
                                             <tr key={sale.id} className="group hover:bg-gray-50/70 transition-colors border-b border-gray-100 last:border-0">
                                                 <td className="px-8 py-6 text-gray-500 font-mono text-xs tracking-wider whitespace-nowrap">{formatDate(sale.sale_date)}</td>
                                                 <td className="px-8 py-6 font-bold text-gray-900 text-sm whitespace-nowrap">{sale.customer_name}</td>
+                                                <td className="px-8 py-6">
+                                                    {(() => {
+                                                        const batch = stock.find(s => s.id === sale.stock_batch_id);
+                                                        return batch ? (
+                                                            <div className="flex flex-col">
+                                                                <span className="text-gray-900 font-semibold text-sm whitespace-nowrap">{batch.seed_name}</span>
+                                                                <span className="text-[10px] text-gray-500 font-mono tracking-wider whitespace-nowrap">#{batch.lot_no}</span>
+                                                            </div>
+                                                        ) : <span className="text-gray-400 italic text-xs">Unknown Stock</span>;
+                                                    })()}
+                                                </td>
+                                                <td className="px-8 py-6 text-gray-700 font-bold text-sm whitespace-nowrap">{sale.packets_sold} <span className="text-[10px] font-normal text-gray-500">pkts</span></td>
                                                 <td className="px-8 py-6 text-gray-700 font-semibold text-sm whitespace-nowrap">₹{sale.total_amount_due.toLocaleString()}</td>
                                                 <td className="px-8 py-6 text-emerald-600 font-bold text-sm whitespace-nowrap">+₹{sale.amount_paid.toLocaleString()}</td>
                                                 <td className="px-8 py-6">
@@ -392,6 +490,7 @@ const Dashboard = () => {
                                         <th className="px-8 py-6 font-semibold whitespace-nowrap">Price Per Packet</th>
                                         <th className="px-8 py-6 font-semibold whitespace-nowrap">Total Value</th>
                                         <th className="px-8 py-6 font-semibold whitespace-nowrap">Arrival</th>
+                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">Weight</th>
                                         <th className="px-8 py-6 font-semibold whitespace-nowrap">Stock Level</th>
                                         <th className="px-8 py-6 font-semibold whitespace-nowrap">Status</th>
                                         <th className="px-8 py-6 text-center font-semibold whitespace-nowrap">Actions</th>
@@ -399,7 +498,7 @@ const Dashboard = () => {
                                 </thead>
                                 <tbody className="">
                                     {filteredData.length === 0 ? (
-                                        <tr><td colSpan="8" className="px-8 py-16 text-center text-gray-400 font-medium">No stock data available.</td></tr>
+                                        <tr><td colSpan="9" className="px-8 py-16 text-center text-gray-400 font-medium">No stock data available.</td></tr>
                                     ) : (
                                         filteredData.map((batch) => (
                                             <tr key={batch.id} className="group hover:bg-gray-50/70 transition-colors border-b border-gray-100 last:border-0">
@@ -413,6 +512,7 @@ const Dashboard = () => {
                                                 <td className="px-8 py-6 text-gray-900 font-bold text-sm whitespace-nowrap">₹{batch.cost_per_packet}</td>
                                                 <td className="px-8 py-6 text-gray-700 font-semibold text-sm whitespace-nowrap">₹{(batch.cost_per_packet * batch.total_packets_initial).toLocaleString()}</td>
                                                 <td className="px-8 py-6 text-gray-500 text-xs tracking-wider font-mono whitespace-nowrap">{formatDate(batch.arrival_date)}</td>
+                                                <td className="px-8 py-6 text-gray-700 font-semibold text-sm whitespace-nowrap">{batch.weight_per_packet || '-'}</td>
                                                 <td className="px-8 py-6 font-mono text-gray-800 font-bold bg-gray-50/80 rounded-lg text-sm whitespace-nowrap">{batch.packets_available} <span className="text-[10px] font-normal text-gray-500">pkts</span></td>
                                                 <td className="px-8 py-6">
                                                     {batch.packets_available > 0 ? (
@@ -518,6 +618,7 @@ const Dashboard = () => {
                                             <DetailRow label="Lot Number" value={modalConfig.item.lot_no} />
                                             <div className="h-px bg-gray-100 my-2"></div>
                                             <DetailRow label="Total Packets" value={modalConfig.item.total_packets_initial} />
+                                            <DetailRow label="Weight / Pkt" value={modalConfig.item.weight_per_packet || '-'} />
                                             <DetailRow label="Avail" value={modalConfig.item.packets_available} color="text-emerald-600" />
                                         </div>
                                     )}
@@ -561,6 +662,9 @@ const Dashboard = () => {
                                             <Input label="Supplier" name="supplier_name" value={editForm.supplier_name} onChange={handleEditChange} />
                                             <Input label="Seed Name" name="seed_name" value={editForm.seed_name} onChange={handleEditChange} />
                                             <Input label="Lot Number" name="lot_no" value={editForm.lot_no} onChange={handleEditChange} />
+                                            <Input label="Arrival Date" name="arrival_date" type="date" value={editForm.arrival_date} onChange={handleEditChange} />
+                                            <Input label="Cost per Packet (₹)" name="cost_per_packet" type="number" value={editForm.cost_per_packet} onChange={handleEditChange} />
+                                            <Input label="Weight per Packet" name="weight_per_packet" value={editForm.weight_per_packet} onChange={handleEditChange} />
                                             <Input label="Initial Packets (Tracked)" name="total_packets_initial" type="number" value={editForm.total_packets_initial} onChange={handleEditChange} />
                                             <Input label="Packets Available" name="packets_available" type="number" value={editForm.packets_available} onChange={handleEditChange} />
                                         </>

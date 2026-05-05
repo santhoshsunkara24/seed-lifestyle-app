@@ -15,7 +15,8 @@ const StockEntry = () => {
         lot_no: '',
         arrival_date: new Date().toISOString().split('T')[0],
         total_packets_initial: '',
-        cost_per_packet: ''
+        cost_per_packet: '',
+        weight_per_packet: ''
     });
 
     const handleChange = (e) => {
@@ -33,7 +34,8 @@ const StockEntry = () => {
             lot_no: '',
             arrival_date: new Date().toISOString().split('T')[0],
             total_packets_initial: '',
-            cost_per_packet: ''
+            cost_per_packet: '',
+            weight_per_packet: ''
         });
         setShowSuccess(false);
     };
@@ -45,6 +47,7 @@ const StockEntry = () => {
         if (!formData.lot_no.trim()) newErrors.lot_no = 'Please fill out this field';
         if (!formData.total_packets_initial) newErrors.total_packets_initial = 'Please fill out this field';
         if (!formData.cost_per_packet) newErrors.cost_per_packet = 'Please fill out this field';
+        if (!formData.weight_per_packet.trim()) newErrors.weight_per_packet = 'Please fill out this field';
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -58,7 +61,8 @@ const StockEntry = () => {
             await addStock({
                 ...formData,
                 total_packets_initial: parseInt(formData.total_packets_initial),
-                cost_per_packet: parseFloat(formData.cost_per_packet)
+                cost_per_packet: parseFloat(formData.cost_per_packet),
+                weight_per_packet: formData.weight_per_packet
             });
             setShowSuccess(true);
         } catch (err) {
@@ -163,6 +167,19 @@ const StockEntry = () => {
                         />
                         {errors.cost_per_packet && <p className="text-rose-500 text-xs mt-1.5 font-bold ml-1">{errors.cost_per_packet}</p>}
                     </div>
+                </div>
+
+                <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">Weight per Packet</label>
+                    <input
+                        type="text"
+                        name="weight_per_packet"
+                        className={`w-full px-5 py-3 bg-white border rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all font-semibold text-gray-900 text-sm ${errors.weight_per_packet ? 'border-rose-300' : 'border-gray-200'}`}
+                        value={formData.weight_per_packet}
+                        onChange={handleChange}
+                        placeholder="e.g. 500g or 1kg"
+                    />
+                    {errors.weight_per_packet && <p className="text-rose-500 text-xs mt-1.5 font-bold ml-1">{errors.weight_per_packet}</p>}
                 </div>
 
                 <div className="pt-4">

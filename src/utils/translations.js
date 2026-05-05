@@ -53,7 +53,8 @@ export const translations = {
         "totalValue": "Total Value",
         "arrival": "Arrival",
         "stockLevel": "Stock Level",
-        "actions": "Actions"
+        "actions": "Actions",
+        "weightPerPacket": "Weight/Pkt"
     },
     te: {
         // Navbar / Layout
@@ -109,6 +110,7 @@ export const translations = {
         "totalValue": "మొత్తం విలువ",
         "arrival": "రాక",
         "stockLevel": "స్టాక్ స్థాయి",
-        "actions": "చర్యలు"
+        "actions": "చర్యలు",
+        "weightPerPacket": "ప్యాకెట్ బరువు"
     }
 };
