@@ -71,6 +71,7 @@ export const DataProvider = ({ children }) => {
                 ...item,
                 packets_available: parseInt(item.total_packets_initial),
                 total_stock_value: parseInt(item.total_packets_initial) * parseFloat(item.cost_per_packet),
+                total_weight: calculateTotalWeight(item.weight_per_packet, item.total_packets_initial),
                 arrival_date: item.arrival_date || new Date().toISOString().split('T')[0],
                 created_at: new Date().toISOString()
             };

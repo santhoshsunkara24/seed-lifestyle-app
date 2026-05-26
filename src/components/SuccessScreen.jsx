@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Check, Plus, LayoutDashboard } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../context/LanguageContext';
 
 const SuccessScreen = ({ title, message, onReset }) => {
     const navigate = useNavigate();
     const [animate, setAnimate] = useState(false);
+    const { t } = useLanguage();
 
     useEffect(() => {
         setAnimate(true);
@@ -13,7 +15,7 @@ const SuccessScreen = ({ title, message, onReset }) => {
     return (
         <div className="flex flex-col items-center justify-center p-8 text-center animate-in fade-in zoom-in duration-300">
             {/* Icon */}
-            <div className="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center mb-6 shadow-sm">
+            <div className="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center mb-6">
                 <Check className="w-8 h-8 text-white" strokeWidth={3} />
             </div>
 
@@ -25,16 +27,17 @@ const SuccessScreen = ({ title, message, onReset }) => {
             <div className="flex flex-col gap-3 w-full max-w-xs">
                 <button
                     onClick={onReset}
-                    className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-full font-bold hover:bg-emerald-700 transition-colors text-sm"
+                    className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-full font-bold hover:bg-emerald-700 transition-colors text-sm cursor-pointer"
                 >
                     <Plus size={16} strokeWidth={2.5} />
-                    Add Another
+                    {t('logAnother')}
                 </button>
                 <button
                     onClick={() => navigate('/')}
-                    className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-white text-gray-700 rounded-full font-semibold hover:bg-gray-50 transition-colors border border-gray-200 text-sm"
+                    className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-white text-gray-700 rounded-full font-semibold hover:bg-gray-50 transition-colors border border-gray-200 text-sm cursor-pointer"
                 >
-                    Go to Dashboard
+                    <LayoutDashboard size={16} strokeWidth={2.5} />
+                    {t('goBack')}
                 </button>
             </div>
         </div>

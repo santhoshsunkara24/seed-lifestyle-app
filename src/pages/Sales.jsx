@@ -3,15 +3,14 @@ import { ShoppingBag, Loader, Sprout } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import SuccessScreen from '../components/SuccessScreen';
 import { formatDate } from '../utils/formatDate';
+import { useLanguage } from '../context/LanguageContext';
 
 const Sales = () => {
     const { stock, addSale } = useData();
     const [loading, setLoading] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
     const [lastSaleResult, setLastSaleResult] = useState(null);
-
-    // Filter only available stock
-
+    const { t } = useLanguage();
 
     const [errors, setErrors] = useState({});
     const [formData, setFormData] = useState({
@@ -91,10 +90,10 @@ const Sales = () => {
     if (showSuccess) {
         return (
             <div className="min-h-[85vh] flex items-center justify-center">
-                <div className="w-full max-w-lg bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-xl">
+                <div className="w-full max-w-lg bg-white rounded-3xl border border-gray-200 overflow-hidden">
                     <SuccessScreen
-                        title="Sale Recorded!"
-                        message={`Sold ${lastSaleResult?.packets_sold} pkts to ${lastSaleResult?.customer_name} on ${formatDate(new Date().toISOString())}. Received ₹${lastSaleResult?.amount_paid}.`}
+                        title={t('saleRecorded')}
+                        message={`${t('sales')}: ${lastSaleResult?.packets_sold} ${t('packets')} ${t('customer')}: ${lastSaleResult?.customer_name}. ${t('paid')}: ₹${lastSaleResult?.amount_paid}.`}
                         onReset={handleReset}
                     />
                 </div>
@@ -109,36 +108,36 @@ const Sales = () => {
                     <ShoppingBag className="h-6 w-6 text-emerald-600" fill="currentColor" strokeWidth={1.5} />
                 </div>
                 <div>
-                    <h2 className="text-xl font-bold text-gray-900 tracking-tight">Log New Sale</h2>
-                    <p className="text-sm text-gray-500 font-medium">Record a new transaction with a farmer.</p>
+                    <h2 className="text-xl font-bold text-gray-900 tracking-tight">{t('logNewSale')}</h2>
+                    <p className="text-sm text-gray-500 font-medium">{t('recordNewTransaction')}</p>
                 </div>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6" noValidate>
                 <div className="grid grid-cols-1 gap-6">
                     <div>
-                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">Customer Details</label>
+                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">{t('customerDetails')}</label>
                         <input
                             type="text"
                             name="customer_name"
-                            className={`w-full px-5 py-3 bg-white border rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all font-semibold text-gray-900 text-sm ${errors.customer_name ? 'border-rose-300' : 'border-gray-200'}`}
+                            className={`w-full px-5 py-3 bg-white border rounded-2xl focus:border-emerald-500 outline-none transition-all font-semibold text-gray-900 text-sm ${errors.customer_name ? 'border-rose-300' : 'border-gray-200'}`}
                             value={formData.customer_name}
                             onChange={handleChange}
-                            placeholder="Enter Farmer Name"
+                            placeholder={t('enterFarmerName')}
                         />
                         {errors.customer_name && <p className="text-rose-500 text-xs mt-1.5 font-bold ml-1">{errors.customer_name}</p>}
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">Seed Selection</label>
+                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">{t('seedSelection')}</label>
                         <div className="relative">
                             <select
                                 name="stock_batch_id"
-                                className={`w-full pl-5 pr-10 py-3 bg-white border rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all appearance-none font-semibold cursor-pointer text-gray-900 text-sm ${errors.stock_batch_id ? 'border-rose-300' : 'border-gray-200'}`}
+                                className={`w-full pl-5 pr-10 py-3 bg-white border rounded-2xl focus:border-emerald-500 outline-none transition-all appearance-none font-semibold cursor-pointer text-gray-900 text-sm ${errors.stock_batch_id ? 'border-rose-300' : 'border-gray-200'}`}
                                 value={formData.stock_batch_id}
                                 onChange={handleChange}
                             >
-                                <option value="">Select Seed Lot...</option>
+                                <option value="">{t('selectSeedLot')}</option>
                                 {[...stock].sort((a, b) => b.packets_available - a.packets_available).map(item => (
                                     <option
                                         key={item.id}
@@ -148,8 +147,8 @@ const Sales = () => {
                                     >
                                         {item.seed_name} - {item.lot_no}
                                         {item.packets_available > 0
-                                            ? ` (${item.packets_available} pkts avail)`
-                                            : ' (Out of Stock)'}
+                                            ? ` (${item.packets_available} ${t('packets')} ${t('avail')})`
+                                            : ` (${t('outOfStock')})`}
                                     </option>
                                 ))}
                             </select>
@@ -161,28 +160,28 @@ const Sales = () => {
 
                 <div className="grid grid-cols-2 gap-6">
                     <div>
-                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">Quantity</label>
+                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">{t('quantity')}</label>
                         <input
                             type="number"
                             name="packets_sold"
                             min="1"
                             max={selectedStock ? selectedStock.packets_available : undefined}
-                            className={`w-full px-5 py-3 bg-white border rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all font-semibold text-gray-900 text-sm ${errors.packets_sold ? 'border-rose-300' : 'border-gray-200'}`}
+                            className={`w-full px-5 py-3 bg-white border rounded-2xl focus:border-emerald-500 outline-none transition-all font-semibold text-gray-900 text-sm ${errors.packets_sold ? 'border-rose-300' : 'border-gray-200'}`}
                             value={formData.packets_sold}
                             onChange={handleChange}
-                            placeholder="Packets"
+                            placeholder={t('packets')}
                         />
-                        {selectedStock && <p className="text-xs text-emerald-600 mt-2 ml-1 font-bold">Available: {selectedStock.packets_available}</p>}
+                        {selectedStock && <p className="text-xs text-emerald-600 mt-2 ml-1 font-bold">{t('packetsAvailable')}{selectedStock.packets_available}</p>}
                         {errors.packets_sold && <p className="text-rose-500 text-xs mt-1.5 font-bold ml-1">{errors.packets_sold}</p>}
                     </div>
                     <div>
-                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">Price / Pkt (₹)</label>
+                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">{t('pricePerPacketLabel')}</label>
                         <input
                             type="number"
                             name="price_per_packet"
                             min="0"
                             step="0.01"
-                            className={`w-full px-5 py-3 bg-white border rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all font-semibold text-gray-900 text-sm ${errors.price_per_packet ? 'border-rose-300' : 'border-gray-200'}`}
+                            className={`w-full px-5 py-3 bg-white border rounded-2xl focus:border-emerald-500 outline-none transition-all font-semibold text-gray-900 text-sm ${errors.price_per_packet ? 'border-rose-300' : 'border-gray-200'}`}
                             value={formData.price_per_packet}
                             onChange={handleChange}
                             placeholder="0.00"
@@ -191,21 +190,21 @@ const Sales = () => {
                     </div>
                 </div>
 
-                <div className="p-6 bg-white rounded-3xl border border-gray-200 shadow-lg shadow-gray-100/50">
+                <div className="p-6 bg-white rounded-3xl border border-gray-200">
                     <div className="flex justify-between items-end mb-6">
-                        <span className="text-sm font-bold text-gray-600">Total Sale Amount</span>
-                        <span className="text-2xl font-bold text-gray-900 tracking-tight">₹{calculatedTotal.toLocaleString()}</span>
+                        <span className="text-sm font-bold text-gray-600">{t('totalSaleAmount')}</span>
+                        <span className="text-2xl font-bold text-gray-900 tracking-tight">₹{calculatedTotal.toLocaleString('en-IN')}</span>
                     </div>
                     <div>
-                        <label className="block text-xs font-bold text-emerald-700 uppercase tracking-wider mb-2 ml-1">Initial Payment (₹)</label>
+                        <label className="block text-xs font-bold text-emerald-700 uppercase tracking-wider mb-2 ml-1">{t('initialPayment')}</label>
                         <input
                             type="number"
                             name="amount_paid_now"
                             min="0"
                             max={calculatedTotal}
                             step="0.01"
-                            placeholder="Amount Received Now"
-                            className={`w-full px-5 py-3 bg-gray-50 border rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all text-gray-900 placeholder:text-gray-400 font-bold text-sm ${errors.amount_paid_now ? 'border-rose-300' : 'border-emerald-200'}`}
+                            placeholder={t('amountReceivedNow')}
+                            className={`w-full px-5 py-3 bg-gray-50 border rounded-2xl focus:border-emerald-500 outline-none transition-all text-gray-900 placeholder:text-gray-400 font-bold text-sm ${errors.amount_paid_now ? 'border-rose-300' : 'border-emerald-200'}`}
                             value={formData.amount_paid_now}
                             onChange={handleChange}
                         />
@@ -217,12 +216,12 @@ const Sales = () => {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full flex items-center justify-center px-6 py-3 bg-emerald-600 text-white font-bold rounded-2xl hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-100 transition-all disabled:opacity-70 text-sm"
+                        className="w-full flex items-center justify-center px-6 py-3 bg-emerald-600 text-white font-bold rounded-2xl hover:bg-emerald-700 focus:outline-none transition-all disabled:opacity-70 text-sm cursor-pointer"
                     >
                         {loading ? <Loader className="animate-spin mr-2 h-5 w-5" /> : <ShoppingBag className="mr-2 h-5 w-5" />}
-                        Record Transaction
+                        {t('recordTransaction')}
                     </button>
-                    <p className="text-center text-xs text-gray-400 mt-4 font-medium opacity-60">Securely recorded in local storage.</p>
+                    <p className="text-center text-xs text-gray-400 mt-4 font-medium opacity-60">{t('securelyRecorded')}</p>
                 </div>
             </form>
         </div>

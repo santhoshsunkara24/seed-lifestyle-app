@@ -54,7 +54,57 @@ export const translations = {
         "arrival": "Arrival",
         "stockLevel": "Stock Level",
         "actions": "Actions",
-        "weightPerPacket": "Weight/Pkt"
+        "weightPerPacket": "Weight/Pkt",
+        "totalWeight": "Total Weight",
+        "totalWeightLabel": "Total Weight of Stock",
+
+        // Form - Sales Entry
+        "logNewSale": "Log New Sale",
+        "recordNewTransaction": "Record a new transaction with a farmer.",
+        "customerDetails": "Customer Details",
+        "enterFarmerName": "Enter Farmer Name",
+        "seedSelection": "Seed Selection",
+        "selectSeedLot": "Select Seed Lot...",
+        "quantity": "Quantity",
+        "pricePerPacketLabel": "Price / Pkt (₹)",
+        "totalSaleAmount": "Total Sale Amount",
+        "initialPayment": "Initial Payment (₹)",
+        "amountReceivedNow": "Amount Received Now",
+        "recordTransaction": "Record Transaction",
+        "securelyRecorded": "Securely recorded in local storage.",
+        "packetsAvailable": "Available: ",
+        "avail": "avail",
+
+        // Form - Stock Entry
+        "newStockEntry": "New Stock Entry",
+        "recordIncomingInventory": "Record incoming inventory from suppliers.",
+        "supplierName": "Supplier Name",
+        "seedName": "Seed Name",
+        "lotNumber": "Lot Number",
+        "batchId": "Batch ID",
+        "expiryDate": "Expiry Date",
+        "entryDate": "Entry Date",
+        "totalPackets": "Total Packets",
+        "costPerPacketLabel": "Cost / Packet (₹)",
+        "weightPerPacketLabel": "Weight per Packet",
+        "saveStockEntry": "Save Stock Entry",
+
+        // Form - Expenses
+        "logNewExpense": "Log New Expense",
+        "trackExpenses": "Track daily or monthly expenses.",
+        "selectCategory": "-- Select Category --",
+        "descriptionOptional": "Description (Optional)",
+        "additionalDetails": "Additional details...",
+        "logExpenseBtn": "Log Expense",
+        "reflectedInTotals": "This will be reflected in your daily totals.",
+
+        // Success Screens
+        "success": "Success!",
+        "goBack": "Go Back",
+        "logAnother": "Log Another",
+        "expenseLogged": "Expense Logged",
+        "saleRecorded": "Sale Recorded!",
+        "stockEntryAdded": "Stock Entry Added!"
     },
     te: {
         // Navbar / Layout
@@ -111,6 +161,56 @@ export const translations = {
         "arrival": "రాక",
         "stockLevel": "స్టాక్ స్థాయి",
         "actions": "చర్యలు",
-        "weightPerPacket": "ప్యాకెట్ బరువు"
+        "weightPerPacket": "ప్యాకెట్ బరువు",
+        "totalWeight": "మొత్తం బరువు",
+        "totalWeightLabel": "మొత్తం స్టాక్ బరువు",
+
+        // Form - Sales Entry
+        "logNewSale": "కొత్త అమ్మకాన్ని నమోదు చేయండి",
+        "recordNewTransaction": "రైతుతో కొత్త లావాదేవీని నమోదు చేయండి.",
+        "customerDetails": "వినియోగదారుని వివరాలు",
+        "enterFarmerName": "రైతు పేరును నమోదు చేయండి",
+        "seedSelection": "విత్తన ఎంపిక",
+        "selectSeedLot": "విత్తన లాట్‌ను ఎంచుకోండి...",
+        "quantity": "పరిమాణం",
+        "pricePerPacketLabel": "ధర / ప్యాకెట్ (₹)",
+        "totalSaleAmount": "మొత్తం అమ్మకం విలువ",
+        "initialPayment": "ప్రారంభ చెల్లింపు (₹)",
+        "amountReceivedNow": "ఇప్పుడు అందుకున్న మొత్తం",
+        "recordTransaction": "లావాదేవీని నమోదు చేయి",
+        "securelyRecorded": "లోకల్ స్టోరేజ్‌లో సురక్షితంగా రికార్డ్ చేయబడింది.",
+        "packetsAvailable": "అందుబాటులో ఉంది: ",
+        "avail": "అందుబాటులో ఉంది",
+
+        // Form - Stock Entry
+        "newStockEntry": "కొత్త స్టాక్ ఎంట్రీ",
+        "recordIncomingInventory": "సరఫరాదారుల నుండి వచ్చే సరుకును నమోదు చేయండి.",
+        "supplierName": "సరఫరాదారు పేరు",
+        "seedName": "విత్తనం పేరు",
+        "lotNumber": "లాట్ సంఖ్య",
+        "batchId": "బ్యాచ్ ఐడి",
+        "expiryDate": "గడువు ముగిసే తేదీ",
+        "entryDate": "చేరిన తేదీ",
+        "totalPackets": "మొత్తం ప్యాకెట్లు",
+        "costPerPacketLabel": "ధర / ప్యాకెట్ (₹)",
+        "weightPerPacketLabel": "ప్యాకెట్ బరువు",
+        "saveStockEntry": "స్టాక్ ఎంట్రీని సేవ్ చేయి",
+
+        // Form - Expenses
+        "logNewExpense": "కొత్త ఖర్చును నమోదు చేయి",
+        "trackExpenses": "రోజువారీ లేదా నెలవారీ ఖర్చులను పర్యవేక్షించండి.",
+        "selectCategory": "-- వర్గాన్ని ఎంచుకోండి --",
+        "descriptionOptional": "వివరణ (ఐచ్ఛికం)",
+        "additionalDetails": "అదనపు వివరాలు...",
+        "logExpenseBtn": "ఖర్చును నమోదు చేయి",
+        "reflectedInTotals": "ఇది మీ రోజువారీ మొత్తాలలో ప్రతిబింబిస్తుంది.",
+
+        // Success Screens
+        "success": "విజయం!",
+        "goBack": "వెనక్కి వెళ్ళండి",
+        "logAnother": "మరొకటి నమోదు చేయి",
+        "expenseLogged": "ఖర్చు నమోదు చేయబడింది",
+        "saleRecorded": "అమ్మకం నమోదు చేయబడింది!",
+        "stockEntryAdded": "స్టాక్ ఎంట్రీ జోడించబడింది!"
     }
 };

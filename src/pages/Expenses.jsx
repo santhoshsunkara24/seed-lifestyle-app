@@ -3,11 +3,13 @@ import { ReceiptText, Loader } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import SuccessScreen from '../components/SuccessScreen';
 import { formatDate } from '../utils/formatDate';
+import { useLanguage } from '../context/LanguageContext';
 
 const Expenses = () => {
     const { addExpense } = useData();
     const [loading, setLoading] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
+    const { t } = useLanguage();
     const [errors, setErrors] = useState({});
     const [formData, setFormData] = useState({
         category: '',
@@ -57,10 +59,10 @@ const Expenses = () => {
     if (showSuccess) {
         return (
             <div className="min-h-[85vh] flex items-center justify-center">
-                <div className="w-full max-w-lg bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-xl">
+                <div className="w-full max-w-lg bg-white rounded-3xl border border-gray-200 overflow-hidden">
                     <SuccessScreen
-                        title="Expense Logged"
-                        message={`Logged ₹${formData.amount} for ${formData.category} on ${formatDate(new Date().toISOString())}.`}
+                        title={t('expenseLogged')}
+                        message={`${t('expenses')}: ₹${formData.amount} (${formData.category}).`}
                         onReset={handleReset}
                     />
                 </div>
@@ -75,21 +77,21 @@ const Expenses = () => {
                     <ReceiptText className="h-6 w-6 text-emerald-600" fill="currentColor" strokeWidth={1.5} />
                 </div>
                 <div>
-                    <h2 className="text-xl font-bold text-gray-900 tracking-tight">Log New Expense</h2>
-                    <p className="text-sm text-gray-500 font-medium">Track daily or monthly business/personal expenses.</p>
+                    <h2 className="text-xl font-bold text-gray-900 tracking-tight">{t('logNewExpense')}</h2>
+                    <p className="text-sm text-gray-500 font-medium">{t('trackExpenses')}</p>
                 </div>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6" noValidate>
                 <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">Category</label>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">{t('category')}</label>
                     <select
                         name="category"
-                        className={`w-full px-5 py-3 bg-white border rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all appearance-none font-semibold cursor-pointer text-gray-900 text-sm ${errors.category ? 'border-rose-300' : 'border-gray-200'}`}
+                        className={`w-full px-5 py-3 bg-white border rounded-2xl focus:border-emerald-500 outline-none transition-all appearance-none font-semibold cursor-pointer text-gray-900 text-sm ${errors.category ? 'border-rose-300' : 'border-gray-200'}`}
                         value={formData.category}
                         onChange={handleChange}
                     >
-                        <option value="">-- Select Category --</option>
+                        <option value="">{t('selectCategory')}</option>
                         {categories.map(cat => (
                             <option key={cat} value={cat}>{cat}</option>
                         ))}
@@ -98,13 +100,13 @@ const Expenses = () => {
                 </div>
 
                 <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">Amount (₹)</label>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">{t('amount')} (₹)</label>
                     <input
                         type="number"
                         name="amount"
                         min="0"
                         step="0.01"
-                        className={`w-full px-5 py-3 bg-white border rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all font-semibold text-gray-900 text-sm ${errors.amount ? 'border-rose-300' : 'border-gray-200'}`}
+                        className={`w-full px-5 py-3 bg-white border rounded-2xl focus:border-emerald-500 outline-none transition-all font-semibold text-gray-900 text-sm ${errors.amount ? 'border-rose-300' : 'border-gray-200'}`}
                         value={formData.amount}
                         onChange={handleChange}
                     />
@@ -112,14 +114,14 @@ const Expenses = () => {
                 </div>
 
                 <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">Description (Optional)</label>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">{t('descriptionOptional')}</label>
                     <textarea
                         name="description"
                         rows="3"
-                        className="w-full px-5 py-3 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all font-semibold text-gray-900 resize-none text-sm"
+                        className="w-full px-5 py-3 bg-white border border-gray-200 rounded-2xl focus:border-emerald-500 outline-none transition-all font-semibold text-gray-900 resize-none text-sm"
                         value={formData.description}
                         onChange={handleChange}
-                        placeholder="Additional details..."
+                        placeholder={t('additionalDetails')}
                     ></textarea>
                 </div>
 
@@ -127,12 +129,12 @@ const Expenses = () => {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full flex items-center justify-center px-6 py-3 bg-emerald-600 text-white font-bold rounded-2xl hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-100 transition-all disabled:opacity-70"
+                        className="w-full flex items-center justify-center px-6 py-3 bg-emerald-600 text-white font-bold rounded-2xl hover:bg-emerald-700 focus:outline-none transition-all disabled:opacity-70 cursor-pointer text-sm"
                     >
                         {loading ? <Loader className="animate-spin mr-2 h-5 w-5" /> : <ReceiptText className="mr-2 h-5 w-5" />}
-                        Log Expense
+                        {t('logExpenseBtn')}
                     </button>
-                    <p className="text-center text-xs text-gray-400 mt-4 font-medium opacity-60">This will be reflected in your daily totals.</p>
+                    <p className="text-center text-xs text-gray-400 mt-4 font-medium opacity-60">{t('reflectedInTotals')}</p>
                 </div>
             </form>
         </div>

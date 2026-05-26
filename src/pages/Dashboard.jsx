@@ -1,14 +1,17 @@
 import React, { useState, useMemo } from 'react';
-import { Wallet, Warehouse, PiggyBank, CheckCircle2, Plus, CheckSquare, Trash2, X, MoveUpRight, Pencil, Save, Eye, Search, Filter, Calendar, Download } from 'lucide-react';
+import { Wallet, Warehouse, PiggyBank, CheckCircle2, Plus, CheckSquare, Trash2, X, MoveUpRight, Pencil, Save, Eye, Search, Filter, Calendar, Download, FileText } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 import { formatDate } from '../utils/formatDate';
 import DatePicker from '../components/ui/DatePicker';
+import { useLanguage } from '../context/LanguageContext';
+import { calculateTotalWeight } from '../utils/weightCalculator';
 
 const Dashboard = () => {
     const { stats, stock, sales, expenses, loading, addPayment, deleteSale, deleteStock, deleteExpense, updateSale, updateStock, updateExpense } = useData();
+    const { t } = useLanguage();
     const [activeTab, setActiveTab] = useState('sales');
     const [searchQuery, setSearchQuery] = useState('');
     const [dateRange, setDateRange] = useState({ start: '', end: '' });
@@ -144,7 +147,8 @@ const Dashboard = () => {
         } else if (modalConfig.dataType === 'stock') {
             const updatedStock = {
                 ...editForm,
-                total_stock_value: (parseInt(editForm.total_packets_initial) || 0) * (parseFloat(editForm.cost_per_packet) || 0)
+                total_stock_value: (parseInt(editForm.total_packets_initial) || 0) * (parseFloat(editForm.cost_per_packet) || 0),
+                total_weight: calculateTotalWeight(editForm.weight_per_packet, editForm.total_packets_initial)
             };
             updateStock(updatedStock);
         } else if (modalConfig.dataType === 'expense') {
@@ -185,9 +189,9 @@ const Dashboard = () => {
                     item.customer_name,
                     stockLabel,
                     item.packets_sold,
-                    `Rs. ${item.total_amount_due.toLocaleString()}`,
-                    `Rs. ${item.amount_paid.toLocaleString()}`,
-                    `Rs. ${(item.total_amount_due - item.amount_paid).toLocaleString()}`
+                    `Rs. ${item.total_amount_due.toLocaleString('en-IN')}`,
+                    `Rs. ${item.amount_paid.toLocaleString('en-IN')}`,
+                    `Rs. ${(item.total_amount_due - item.amount_paid).toLocaleString('en-IN')}`
                 ];
             });
         } else if (activeTab === 'stock') {
@@ -201,7 +205,7 @@ const Dashboard = () => {
                 formatDate(item.arrival_date),
                 item.total_packets_initial,
                 item.packets_available,
-                `Rs. ${(item.total_stock_value || 0).toLocaleString()}`
+                `Rs. ${(item.total_stock_value || 0).toLocaleString('en-IN')}`
             ]);
         } else if (activeTab === 'expenses') {
             columns = ["Date", "Category", "Description", "Amount"];
@@ -209,7 +213,7 @@ const Dashboard = () => {
                 formatDate(item.expense_date),
                 item.category,
                 item.description || '-',
-                `Rs. ${item.amount.toLocaleString()}`
+                `Rs. ${item.amount.toLocaleString('en-IN')}`
             ]);
         }
 
@@ -225,14 +229,91 @@ const Dashboard = () => {
         doc.save(`${activeTab}_report_${new Date().toISOString().split('T')[0]}.pdf`);
     };
 
+    const handleDownloadBill = (sale) => {
+        const doc = new jsPDF();
+        const stockItem = stock.find(s => s.id === sale.stock_batch_id);
+
+        // Header
+        doc.setFontSize(22);
+        doc.setTextColor(16, 185, 129); // emerald-600
+        doc.text("SEKHAR HYBRID SEEDS", 14, 25);
+        
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.text("Official Sale Bill / Invoice", 14, 32);
+        
+        doc.setDrawColor(230);
+        doc.line(14, 38, 196, 38);
+
+        // Bill Info
+        doc.setFontSize(11);
+        doc.setTextColor(0);
+        doc.setFont("helvetica", "bold");
+        doc.text("Bill To:", 14, 50);
+        doc.setFont("helvetica", "normal");
+        doc.text(sale.customer_name, 14, 56);
+        
+        doc.setFont("helvetica", "bold");
+        doc.text("Bill Details:", 130, 50);
+        doc.setFont("helvetica", "normal");
+        doc.text(`Date: ${formatDate(sale.sale_date)}`, 130, 56);
+        doc.text(`Invoice #: SAL-${sale.id.slice(-6).toUpperCase()}`, 130, 62);
+
+        // Table
+        autoTable(doc, {
+            startY: 75,
+            head: [["Item Description", "Qty", "Price/Pkt", "Total Amount"]],
+            body: [[
+                `${stockItem?.seed_name || 'Seed'} (Lot: ${stockItem?.lot_no || 'N/A'})`,
+                `${sale.packets_sold} pkts`,
+                `Rs. ${sale.price_per_packet.toLocaleString('en-IN')}`,
+                `Rs. ${sale.total_amount_due.toLocaleString('en-IN')}`
+            ]],
+            theme: 'grid',
+            headStyles: { fillColor: [16, 185, 129], textColor: [255, 255, 255], fontStyle: 'bold' },
+            columnStyles: {
+                0: { cellWidth: 100 },
+                3: { halign: 'right' }
+            }
+        });
+
+        // Summary
+        const finalY = doc.lastAutoTable.finalY + 15;
+        doc.setFontSize(11);
+        doc.setFont("helvetica", "bold");
+        doc.text("Summary:", 130, finalY);
+        
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.text(`Total Amount:`, 130, finalY + 8);
+        doc.text(`Rs. ${sale.total_amount_due.toLocaleString('en-IN')}`, 196, finalY + 8, { align: 'right' });
+        
+        doc.setTextColor(5, 150, 105); // emerald-700
+        doc.text(`Amount Paid:`, 130, finalY + 14);
+        doc.text(`Rs. ${sale.amount_paid.toLocaleString('en-IN')}`, 196, finalY + 14, { align: 'right' });
+        
+        doc.setTextColor(225, 29, 72); // rose-600
+        doc.setFont("helvetica", "bold");
+        doc.text(`Balance Due:`, 130, finalY + 22);
+        doc.text(`Rs. ${(sale.total_amount_due - sale.amount_paid).toLocaleString('en-IN')}`, 196, finalY + 22, { align: 'right' });
+
+        // Footer
+        doc.setFontSize(9);
+        doc.setTextColor(150);
+        doc.setFont("helvetica", "italic");
+        doc.text("Thank you for your business!", 105, 280, { align: 'center' });
+
+        doc.save(`Bill_${sale.customer_name}_${sale.sale_date.split('T')[0]}.pdf`);
+    };
+
 
 
     return (
         <div className="space-y-8 relative max-w-[1600px] mx-auto">
             <header className="flex justify-between items-end mb-8 border-b border-gray-200 pb-6">
                 <div>
-                    <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight lg:text-4xl leading-tight">Dashboard.</h2>
-                    <p className="text-sm text-gray-500 font-medium tracking-wide mt-1">Overview & Statistics</p>
+                    <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight lg:text-4xl leading-tight">{t('dashboard')}.</h2>
+                    <p className="text-sm text-gray-500 font-medium tracking-wide mt-1">{t('overview')}</p>
                 </div>
                 <div className="text-sm font-bold text-gray-600 bg-white px-5 py-2.5 border border-gray-200 uppercase tracking-widest rounded-full">
                     {formatDate(new Date().toISOString())}
@@ -242,7 +323,7 @@ const Dashboard = () => {
             {/* Stats Grid - Soft & Minimal */}
             {/* Stats Grid - Soft & Minimal (Tinted) */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-emerald-50 p-8 rounded-3xl relative overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 group border border-emerald-100/50">
+                <div className="bg-emerald-50 p-8 rounded-3xl relative overflow-hidden transition-all duration-300 group border border-emerald-100/50">
                     <div className="absolute top-0 right-0 p-8 text-emerald-100 opacity-50 group-hover:scale-110 transition-transform duration-500">
                         <Wallet size={120} strokeWidth={0} fill="currentColor" />
                     </div>
@@ -251,14 +332,14 @@ const Dashboard = () => {
                             <div className="p-2.5 bg-emerald-100 rounded-full">
                                 <Wallet size={24} strokeWidth={0} fill="currentColor" className="text-emerald-600" />
                             </div>
-                            <h3 className="text-emerald-900 font-extrabold tracking-wide text-[10px] uppercase">Money Received</h3>
+                            <h3 className="text-emerald-900 font-extrabold tracking-wide text-[10px] uppercase">{t('moneyReceived')}</h3>
                         </div>
-                        <p className="text-2xl font-bold text-gray-900 tracking-tight mb-1">₹{loading ? "..." : (stats.totalCollection || 0).toLocaleString()}</p>
-                        <p className="text-emerald-800 text-sm font-semibold">Total: ₹{loading ? "..." : (stats.totalSalesValue || 0).toLocaleString()}</p>
+                        <p className="text-2xl font-bold text-gray-900 tracking-tight mb-1">₹{loading ? "..." : (stats.totalCollection || 0).toLocaleString('en-IN')}</p>
+                        <p className="text-emerald-800 text-sm font-semibold">{t('total')}: ₹{loading ? "..." : (stats.totalSalesValue || 0).toLocaleString('en-IN')}</p>
                     </div>
                 </div>
 
-                <div className="bg-blue-50 p-8 rounded-3xl relative overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 group border border-blue-100/50">
+                <div className="bg-blue-50 p-8 rounded-3xl relative overflow-hidden transition-all duration-300 group border border-blue-100/50">
                     <div className="absolute top-0 right-0 p-8 text-blue-100 opacity-50 group-hover:scale-110 transition-transform duration-500">
                         <Warehouse size={120} strokeWidth={0} fill="currentColor" />
                     </div>
@@ -267,14 +348,14 @@ const Dashboard = () => {
                             <div className="p-2.5 bg-blue-100 rounded-full">
                                 <Warehouse size={24} strokeWidth={0} fill="currentColor" className="text-blue-600" />
                             </div>
-                            <h3 className="text-blue-900 font-extrabold tracking-wide text-[10px] uppercase">Stock Value</h3>
+                            <h3 className="text-blue-900 font-extrabold tracking-wide text-[10px] uppercase">{t('stockValue')}</h3>
                         </div>
-                        <p className="text-2xl font-bold text-gray-900 tracking-tight mb-1">₹{loading ? "..." : (stats.stockValue || 0).toLocaleString()}</p>
-                        <p className="text-blue-800 text-sm font-semibold">{loading ? "..." : stats.totalBatches || 0} Batches in Warehouse</p>
+                        <p className="text-2xl font-bold text-gray-900 tracking-tight mb-1">₹{loading ? "..." : (stats.stockValue || 0).toLocaleString('en-IN')}</p>
+                        <p className="text-blue-800 text-sm font-semibold">{loading ? "..." : stats.totalBatches || 0} {t('batchesInWarehouse')}</p>
                     </div>
                 </div>
 
-                <div className="bg-rose-50 p-8 rounded-3xl relative overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 group border border-rose-100/50">
+                <div className="bg-rose-50 p-8 rounded-3xl relative overflow-hidden transition-all duration-300 group border border-rose-100/50">
                     <div className="absolute top-0 right-0 p-8 text-rose-100 opacity-50 group-hover:scale-110 transition-transform duration-500">
                         <PiggyBank size={120} strokeWidth={0} fill="currentColor" />
                     </div>
@@ -283,16 +364,16 @@ const Dashboard = () => {
                             <div className="p-2.5 bg-rose-100 rounded-full">
                                 <PiggyBank size={24} strokeWidth={0} fill="currentColor" className="text-rose-600" />
                             </div>
-                            <h3 className="text-rose-900 font-extrabold tracking-wide text-[10px] uppercase">Expenses</h3>
+                            <h3 className="text-rose-900 font-extrabold tracking-wide text-[10px] uppercase">{t('expenses')}</h3>
                         </div>
-                        <p className="text-2xl font-bold text-gray-900 tracking-tight mb-1">₹{loading ? "..." : (stats.totalExpenses || 0).toLocaleString()}</p>
-                        <p className="text-rose-800 text-sm font-semibold">{loading ? "..." : (stats.expenseCount || 0)} Transactions</p>
+                        <p className="text-2xl font-bold text-gray-900 tracking-tight mb-1">₹{loading ? "..." : (stats.totalExpenses || 0).toLocaleString('en-IN')}</p>
+                        <p className="text-rose-800 text-sm font-semibold">{loading ? "..." : (stats.expenseCount || 0)} {t('transactions')}</p>
                     </div>
                 </div>
             </div>
 
             {/* Content Area with Tabs */}
-            <div className="bg-white rounded-3xl border border-gray-100 overflow-hidden min-h-[600px] shadow-xl shadow-gray-100/50">
+            <div className="bg-white rounded-3xl border border-gray-200 overflow-hidden min-h-[600px]">
                 <div className="border-b border-gray-200 px-8 flex flex-col items-start bg-white sticky top-0 z-10 pt-8 pb-0">
                     <div className="flex space-x-12 w-full overflow-x-auto no-scrollbar mb-6">
                         {['sales', 'stock', 'expenses'].map((tab) => (
@@ -307,7 +388,7 @@ const Dashboard = () => {
                                 {tab === 'sales' && <Wallet size={18} strokeWidth={activeTab === 'sales' ? 0 : 2} fill={activeTab === 'sales' ? "currentColor" : "none"} className={activeTab === 'sales' ? "text-emerald-500" : ""} />}
                                 {tab === 'stock' && <Warehouse size={18} strokeWidth={activeTab === 'stock' ? 0 : 2} fill={activeTab === 'stock' ? "currentColor" : "none"} className={activeTab === 'stock' ? "text-blue-500" : ""} />}
                                 {tab === 'expenses' && <PiggyBank size={18} strokeWidth={activeTab === 'expenses' ? 0 : 2} fill={activeTab === 'expenses' ? "currentColor" : "none"} className={activeTab === 'expenses' ? "text-rose-500" : ""} />}
-                                {tab === 'sales' ? 'Sales Tracker' : tab === 'stock' ? 'Stock Tracker' : 'Expense Log'}
+                                {tab === 'sales' ? t('salesTracker') : tab === 'stock' ? t('inventoryStatus') : t('expenseLog')}
                             </button>
                         ))}
                     </div>
@@ -318,7 +399,7 @@ const Dashboard = () => {
                         <div className="relative w-full md:w-72 group">
                             <input
                                 type="text"
-                                placeholder={`Search ${activeTab}...`}
+                                placeholder={activeTab === 'sales' ? t('searchSales') : activeTab === 'stock' ? t('searchStock') : t('searchExpenses')}
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="w-full pl-11 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500 focus:bg-white transition-all text-gray-900 placeholder:text-gray-500 font-medium"
@@ -333,7 +414,7 @@ const Dashboard = () => {
                                 onChange={(e) => setSelectedEntity(e.target.value)}
                                 className="w-full pl-11 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500 focus:bg-white transition-all appearance-none cursor-pointer text-gray-700 font-medium"
                             >
-                                <option value="">All {activeTab === 'sales' ? 'Customers' : activeTab === 'stock' ? 'Suppliers' : 'Categories'}</option>
+                                <option value="">{activeTab === 'sales' ? t('allCustomers') : activeTab === 'stock' ? t('allSuppliers') : t('allCategories')}</option>
                                 {uniqueEntities.map(entity => (
                                     <option key={entity} value={entity}>{entity}</option>
                                 ))}
@@ -344,13 +425,13 @@ const Dashboard = () => {
                         {/* Date Picker using Custom Component */}
                         <div className="flex gap-3 items-center w-full md:w-auto">
                             <DatePicker
-                                placeholder="Start Date"
+                                placeholder={t('startDate')}
                                 selectedDate={dateRange.start}
                                 onChange={(date) => setDateRange({ ...dateRange, start: date })}
                             />
                             <span className="text-gray-300 font-light">/</span>
                             <DatePicker
-                                placeholder="End Date"
+                                placeholder={t('endDate')}
                                 selectedDate={dateRange.end}
                                 onChange={(date) => setDateRange({ ...dateRange, end: date })}
                             />
@@ -378,7 +459,7 @@ const Dashboard = () => {
                             className={`
                                 p-3 rounded-lg transition-all border flex items-center justify-center gap-2 px-4 font-bold text-sm
                                 ${filteredData.length > 0
-                                    ? 'bg-emerald-600 text-white border-transparent hover:bg-emerald-700 shadow-sm'
+                                    ? 'bg-emerald-600 text-white border-transparent hover:bg-emerald-700'
                                     : 'text-gray-300 border-gray-100 bg-gray-50 cursor-not-allowed'}
                             `}
                             title="Download PDF Report"
@@ -395,15 +476,15 @@ const Dashboard = () => {
                             <table className="w-full text-base text-left text-gray-600">
                                 <thead className="text-sm text-gray-500 font-bold uppercase tracking-widest border-b border-gray-100">
                                     <tr>
-                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">Date</th>
-                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">Customer</th>
-                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">Product</th>
-                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">Qty</th>
-                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">Total</th>
-                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">Paid</th>
-                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">Due</th>
-                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">Quick Pay</th>
-                                        <th className="px-8 py-6 text-center font-semibold whitespace-nowrap">Manage</th>
+                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">{t('date')}</th>
+                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">{t('customer')}</th>
+                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">{t('seedLot')}</th>
+                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">{t('stock')}</th>
+                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">{t('total')}</th>
+                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">{t('paid')}</th>
+                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">{t('due')}</th>
+                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">{t('fastAction')}</th>
+                                        <th className="px-8 py-6 text-center font-semibold whitespace-nowrap">{t('manage')}</th>
                                     </tr>
                                 </thead>
                                 <tbody className="">
@@ -425,20 +506,20 @@ const Dashboard = () => {
                                                         ) : <span className="text-gray-400 italic text-xs">Unknown Stock</span>;
                                                     })()}
                                                 </td>
-                                                <td className="px-8 py-6 text-gray-700 font-bold text-sm whitespace-nowrap">{sale.packets_sold} <span className="text-[10px] font-normal text-gray-500">pkts</span></td>
-                                                <td className="px-8 py-6 text-gray-700 font-semibold text-sm whitespace-nowrap">₹{sale.total_amount_due.toLocaleString()}</td>
-                                                <td className="px-8 py-6 text-emerald-600 font-bold text-sm whitespace-nowrap">+₹{sale.amount_paid.toLocaleString()}</td>
+                                                <td className="px-8 py-6 text-gray-700 font-bold text-sm whitespace-nowrap">{sale.packets_sold} <span className="text-[10px] font-normal text-gray-500">{t('packets')}</span></td>
+                                                <td className="px-8 py-6 text-gray-700 font-semibold text-sm whitespace-nowrap">₹{sale.total_amount_due.toLocaleString('en-IN')}</td>
+                                                <td className="px-8 py-6 text-emerald-600 font-bold text-sm whitespace-nowrap">+₹{sale.amount_paid.toLocaleString('en-IN')}</td>
                                                 <td className="px-8 py-6">
                                                     {sale.total_amount_due - sale.amount_paid > 0 ? (
-                                                        <span className="text-rose-500 font-bold bg-rose-50 px-2.5 py-1 rounded-lg text-xs whitespace-nowrap">₹{(sale.total_amount_due - sale.amount_paid).toLocaleString()} DUE</span>
+                                                        <span className="text-rose-500 font-bold bg-rose-50 px-2.5 py-1 rounded-lg text-xs whitespace-nowrap">₹{(sale.total_amount_due - sale.amount_paid).toLocaleString('en-IN')} {t('due')}</span>
                                                     ) : (
-                                                        <span className="text-emerald-500 font-bold bg-emerald-50 px-2.5 py-1 rounded-lg text-xs whitespace-nowrap">PAID</span>
+                                                        <span className="text-emerald-500 font-bold bg-emerald-50 px-2.5 py-1 rounded-lg text-xs whitespace-nowrap">{t('paid')}</span>
                                                     )}
                                                 </td>
                                                 <td className="px-8 py-6">
                                                     {sale.is_fully_paid ? (
                                                         <span className="inline-flex items-center text-emerald-600 bg-emerald-50/50 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border border-emerald-100 whitespace-nowrap">
-                                                            Paid
+                                                            {t('paid')}
                                                         </span>
                                                     ) : (
                                                         <div className="flex items-center gap-2 h-10 opacity-100 transition-opacity">
@@ -468,6 +549,7 @@ const Dashboard = () => {
                                                 </td>
                                                 <td className="px-8 py-6 text-center">
                                                     <div className="flex justify-center gap-2 transition-opacity">
+                                                        <button onClick={() => handleDownloadBill(sale)} className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-gray-100 rounded-full transition-colors" title="Download Bill"><FileText size={18} strokeWidth={1.5} /></button>
                                                         <button onClick={() => openModal(sale, 'sale', 'view')} className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-gray-100 rounded-full transition-colors"><Eye size={18} strokeWidth={1.5} /></button>
                                                         <button onClick={() => openModal(sale, 'sale', 'edit')} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-gray-100 rounded-full transition-colors"><Pencil size={18} strokeWidth={1.5} /></button>
                                                         <button onClick={() => openModal(sale, 'sale', 'delete')} className="p-2 text-gray-400 hover:text-rose-600 hover:bg-gray-100 rounded-full transition-colors"><Trash2 size={18} strokeWidth={1.5} /></button>
@@ -486,21 +568,22 @@ const Dashboard = () => {
                             <table className="w-full text-base text-left text-gray-600">
                                 <thead className="text-sm text-gray-500 font-bold uppercase tracking-widest border-b border-gray-100">
                                     <tr>
-                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">Supplier</th>
-                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">Seed Lot</th>
+                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">{t('supplier')}</th>
+                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">{t('seedLot')}</th>
                                         <th className="px-8 py-6 font-semibold whitespace-nowrap">Expiry</th>
-                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">Price Per Packet</th>
-                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">Total Value</th>
-                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">Arrival</th>
-                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">Weight</th>
-                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">Stock Level</th>
-                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">Status</th>
-                                        <th className="px-8 py-6 text-center font-semibold whitespace-nowrap">Actions</th>
+                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">{t('pricePerPacket')}</th>
+                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">{t('totalValue')}</th>
+                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">{t('arrival')}</th>
+                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">{t('weightPerPacket')}</th>
+                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">{t('totalWeight')}</th>
+                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">{t('stockLevel')}</th>
+                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">{t('status')}</th>
+                                        <th className="px-8 py-6 text-center font-semibold whitespace-nowrap">{t('actions')}</th>
                                     </tr>
                                 </thead>
                                 <tbody className="">
                                     {filteredData.length === 0 ? (
-                                        <tr><td colSpan="10" className="px-8 py-16 text-center text-gray-400 font-medium">No stock data available.</td></tr>
+                                        <tr><td colSpan="11" className="px-8 py-16 text-center text-gray-400 font-medium">No stock data available.</td></tr>
                                     ) : (
                                         filteredData.map((batch) => (
                                             <tr key={batch.id} className="group hover:bg-gray-50/70 transition-colors border-b border-gray-100 last:border-0">
@@ -513,15 +596,16 @@ const Dashboard = () => {
                                                 </td>
                                                 <td className="px-8 py-6 text-rose-600 font-semibold text-xs whitespace-nowrap">{batch.expiry_date ? formatDate(batch.expiry_date) : '-'}</td>
                                                 <td className="px-8 py-6 text-gray-900 font-bold text-sm whitespace-nowrap">₹{batch.cost_per_packet}</td>
-                                                <td className="px-8 py-6 text-gray-700 font-semibold text-sm whitespace-nowrap">₹{(batch.cost_per_packet * batch.total_packets_initial).toLocaleString()}</td>
+                                                <td className="px-8 py-6 text-gray-700 font-semibold text-sm whitespace-nowrap">₹{(batch.cost_per_packet * batch.total_packets_initial).toLocaleString('en-IN')}</td>
                                                 <td className="px-8 py-6 text-gray-500 text-xs tracking-wider font-mono whitespace-nowrap">{formatDate(batch.arrival_date)}</td>
                                                 <td className="px-8 py-6 text-gray-700 font-semibold text-sm whitespace-nowrap">{batch.weight_per_packet || '-'}</td>
-                                                <td className="px-8 py-6 font-mono text-gray-800 font-bold bg-gray-50/80 rounded-lg text-sm whitespace-nowrap">{batch.packets_available} <span className="text-[10px] font-normal text-gray-500">pkts</span></td>
+                                                <td className="px-8 py-6 text-emerald-600 font-bold text-sm whitespace-nowrap">{batch.total_weight || calculateTotalWeight(batch.weight_per_packet, batch.total_packets_initial) || '-'}</td>
+                                                <td className="px-8 py-6 font-mono text-gray-800 font-bold bg-gray-50/80 rounded-lg text-sm whitespace-nowrap">{batch.packets_available} <span className="text-[10px] font-normal text-gray-500">{t('packets')}</span></td>
                                                 <td className="px-8 py-6">
                                                     {batch.packets_available > 0 ? (
-                                                        <span className="inline-flex items-center text-emerald-600 bg-emerald-50/50 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border border-emerald-100 whitespace-nowrap">In Stock</span>
+                                                        <span className="inline-flex items-center text-emerald-600 bg-emerald-50/50 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border border-emerald-100 whitespace-nowrap">{t('inStock')}</span>
                                                     ) : (
-                                                        <span className="inline-flex items-center text-rose-600 bg-rose-50/50 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border border-rose-100 whitespace-nowrap">Out of Stock</span>
+                                                        <span className="inline-flex items-center text-rose-600 bg-rose-50/50 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border border-rose-100 whitespace-nowrap">{t('outOfStock')}</span>
                                                     )}
                                                 </td>
                                                 <td className="px-8 py-6 text-center">
@@ -544,11 +628,11 @@ const Dashboard = () => {
                             <table className="w-full text-sm text-left text-gray-500">
                                 <thead className="text-xs text-gray-400 font-bold uppercase tracking-widest border-b border-gray-100">
                                     <tr>
-                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">Date</th>
-                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">Category</th>
-                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">Description</th>
-                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">Amount</th>
-                                        <th className="px-8 py-6 text-center font-semibold whitespace-nowrap">Actions</th>
+                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">{t('date')}</th>
+                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">{t('category')}</th>
+                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">{t('description')}</th>
+                                        <th className="px-8 py-6 font-semibold whitespace-nowrap">{t('amount')}</th>
+                                        <th className="px-8 py-6 text-center font-semibold whitespace-nowrap">{t('actions')}</th>
                                     </tr>
                                 </thead>
                                 <tbody className="">
@@ -559,7 +643,7 @@ const Dashboard = () => {
                                             <tr key={exp.id} className="group hover:bg-gray-50/70 transition-colors border-b border-gray-100 last:border-0">
                                                 <td className="px-8 py-6 text-gray-500 font-mono text-sm tracking-wider whitespace-nowrap">{formatDate(exp.expense_date)}</td>
                                                 <td className="px-8 py-6">
-                                                    <span className="bg-white text-gray-700 px-3 py-1.5 rounded-lg text-sm font-bold border border-gray-300 uppercase tracking-wider shadow-sm whitespace-nowrap">{exp.category}</span>
+                                                    <span className="bg-white text-gray-700 px-3 py-1.5 rounded-lg text-sm font-bold border border-gray-300 uppercase tracking-wider whitespace-nowrap">{exp.category}</span>
                                                 </td>
                                                 <td className="px-8 py-6 text-gray-500 italic text-base whitespace-nowrap">{exp.description || '-'}</td>
                                                 <td className="px-8 py-6 font-bold text-gray-900 text-lg whitespace-nowrap">₹{exp.amount}</td>
@@ -583,7 +667,7 @@ const Dashboard = () => {
             {/* Reusable Modal for View and Edit */}
             {modalConfig.isOpen && (
                 <div className="fixed inset-0 bg-gray-900/20 flex items-center justify-center z-50 p-4" onClick={closeModal}>
-                    <div className="bg-white rounded-xl border border-gray-200 shadow-lg w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200" onClick={(e) => e.stopPropagation()}>
+                    <div className="bg-white rounded-xl border border-gray-200 w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200" onClick={(e) => e.stopPropagation()}>
                         <div className="px-8 py-6 border-b border-gray-100 flex justify-between items-center bg-white">
                             <div>
                                 <h3 className="text-xl font-bold text-gray-900 capitalize tracking-tight">
@@ -623,6 +707,7 @@ const Dashboard = () => {
                                             <div className="h-px bg-gray-100 my-2"></div>
                                             <DetailRow label="Total Packets" value={modalConfig.item.total_packets_initial} />
                                             <DetailRow label="Weight / Pkt" value={modalConfig.item.weight_per_packet || '-'} />
+                                            <DetailRow label="Total Weight" value={modalConfig.item.total_weight || calculateTotalWeight(modalConfig.item.weight_per_packet, modalConfig.item.total_packets_initial) || '-'} />
                                             <DetailRow label="Avail" value={modalConfig.item.packets_available} color="text-emerald-600" />
                                         </div>
                                     )}
@@ -666,12 +751,34 @@ const Dashboard = () => {
                                             <Input label="Supplier" name="supplier_name" value={editForm.supplier_name} onChange={handleEditChange} />
                                             <Input label="Seed Name" name="seed_name" value={editForm.seed_name} onChange={handleEditChange} />
                                             <Input label="Lot Number" name="lot_no" value={editForm.lot_no} onChange={handleEditChange} />
-                                            <Input label="Arrival Date" name="arrival_date" type="date" value={editForm.arrival_date} onChange={handleEditChange} />
-                                            <Input label="Expiry Date" name="expiry_date" type="date" value={editForm.expiry_date} onChange={handleEditChange} />
+                                            <div>
+                                                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Arrival Date</label>
+                                                <DatePicker
+                                                    placeholder="Arrival Date"
+                                                    selectedDate={editForm.arrival_date}
+                                                    onChange={(val) => handleEditChange({ target: { name: 'arrival_date', value: val } })}
+                                                    fullWidth={true}
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Expiry Date</label>
+                                                <DatePicker
+                                                    placeholder="Expiry Date"
+                                                    selectedDate={editForm.expiry_date}
+                                                    onChange={(val) => handleEditChange({ target: { name: 'expiry_date', value: val } })}
+                                                    fullWidth={true}
+                                                />
+                                            </div>
                                             <Input label="Cost per Packet (₹)" name="cost_per_packet" type="number" value={editForm.cost_per_packet} onChange={handleEditChange} />
                                             <Input label="Weight per Packet" name="weight_per_packet" value={editForm.weight_per_packet} onChange={handleEditChange} />
                                             <Input label="Initial Packets (Tracked)" name="total_packets_initial" type="number" value={editForm.total_packets_initial} onChange={handleEditChange} />
                                             <Input label="Packets Available" name="packets_available" type="number" value={editForm.packets_available} onChange={handleEditChange} />
+                                            <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-xl mt-3 flex justify-between items-center">
+                                                <span className="text-xs font-bold text-emerald-800">Calculated Total Weight</span>
+                                                <span className="text-sm font-extrabold text-emerald-600">
+                                                    {calculateTotalWeight(editForm.weight_per_packet, editForm.total_packets_initial) || '-'}
+                                                </span>
+                                            </div>
                                         </>
                                     )}
                                     {modalConfig.dataType === 'expense' && (
@@ -725,7 +832,7 @@ const Input = ({ label, name, type = "text", value, onChange }) => (
             name={name}
             value={value}
             onChange={onChange}
-            className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400"
+            className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-xl focus:border-emerald-500 outline-none transition-all text-sm font-semibold text-gray-900 placeholder:text-gray-400"
         />
     </div>
 );
