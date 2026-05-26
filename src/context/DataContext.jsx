@@ -10,6 +10,7 @@ import {
     orderBy
 } from 'firebase/firestore';
 import { db } from '../firebase-config';
+import { calculateTotalWeight } from '../utils/weightCalculator';
 
 const DataContext = createContext();
 
